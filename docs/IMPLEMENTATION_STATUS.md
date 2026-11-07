@@ -1,27 +1,42 @@
 # Implementation status — 2026-11-07
 
-## Execution ledger
+Current state supersedes pre-publication observations in the historical design/plan. Read PROJECT_CONTEXT.md for the full handoff.
 
-Plan: docs/superpowers/plans/2026-11-07-platform.md. Scope is the user's native iPad milestone plus shared protocol foundations.
+## Published baseline
 
-Ruling: use the user-initialized OPMS repository root, rather than a nested repository, because origin was explicitly configured here. Supplied prototype and archive remain ignored. Git metadata writes are denied by this execution environment; worktree/branch/commit creation is unavailable. Implement source in the current workspace without modifying existing tracked product code (repository has no initial commit).
+Repository: https://github.com/grandaxine/open-pharma-meeting — public, owner `grandaxine`, branch `main`.
 
-Ruling: create native static-library Xcode targets, plus a matching Swift package for host tests. Local-package Xcode resolution was blocked by its user cache permissions even with a custom cache path; native targets compile without package resolution. No third-party runtime dependencies are introduced.
+Initial commit: `777338b6e2105b58a02a42db575c970d1931b9ef` — `feat: initialize open pharma meeting platform`.
 
-Ruling: initial code is newly authored from public native API patterns, rather than copying unlicensed starter files. Include an in-memory mock service simulator now; deployable HTTP mock/reference backend remains milestone 2.
+CI: https://github.com/grandaxine/open-pharma-meeting/actions/runs/42345635063 — **completed / success**, confirmed through GitHub connector after the user's push. Swift tests, native-export schema validation, protocol checks, source scan, reproducibility check and unsigned iPad build all passed.
 
-Test sequence: wrote model/policy/repository/chunk tests before implementation (initial run reported missing module sources; one environment-cache failure was corrected by directing module caches to /private/tmp). First executable tests exposed timestamp precision loss; creation times now use the documented whole-second resolution. Added capture reserve test before CaptureLimits existed; observed missing-symbol failure then implemented it. Added connector round-trip/idempotency test before the mock existed; observed missing-symbol failure then implemented it. These are not native microphone/Speech lifecycle tests.
+## Milestone progress
 
-Current evidence: 7 XCTest tests passed; 4 Python schema/OpenAPI fixture tests passed; generic iOS build succeeded with Xcode 26.5, code signing disabled. A further final run/review is required before release. Simulator service is unavailable in the sandbox; no simulator UI or physical-device validation occurred. See VALIDATION.md.
+| Deliverable | Status |
+| --- | --- |
+| Actual Xcode project and native iPad application | Implemented; generic iOS build passed |
+| Six module boundaries and seven cross-platform contracts | Implemented; some enterprise contracts are interfaces only |
+| Audio capture/pause/resume/chunks/journal/recovery | Source implemented; physical-device acceptance outstanding |
+| Local on-device transcription/timestamps/timeout/cancellation | Source implemented; actual Speech/device acceptance outstanding |
+| Local storage, validated models, JSON import/export | Implemented with host coverage; fault-injection coverage incomplete |
+| Ten public schemas, fixtures and OpenAPI draft 0.1 | Implemented; structural tests and native-export validation passed |
+| Corporate testing without AI service | In-memory mock implemented; deployable HTTP backend is milestone 2 |
+| Governance/security/license/Android roadmap/CI | Present; Apache-2.0; no third-party runtime packages |
+| Public-source readiness and initial push | Completed for baseline; 66 published files, supplied archive/prototype excluded |
+| Hardware validation / full Milestone 1 acceptance | Pending; see VALIDATION.md |
 
-Governance and security docs, six Swift modules, Xcode project, ten schemas, OpenAPI, fixtures and CI workflow are present. Full backend/identity/report-sync implementation is intentionally subsequent work. SecureStorage is an interface only; no credentials are collected by the MVP.
+## Verification and review record
 
-GitHub origin is configured as https://github.com/grandaxine/open-pharma-meeting.git by the user. Connected GitHub identity was grandaxine. Terminal authorization succeeds for the user, but sandboxed CLI cannot access working GitHub credentials/network. No remote existence, public visibility, commit SHA, pushed source or GitHub CI result has yet been verified. Do not treat origin as a published repository URL.
+12 XCTest cases and 4 Python protocol tests passed locally and CI passed. A Swift-produced Meeting export passed independent JSON Schema validation. The independent implementation review identified four important bugs: imported media-duration overflow, filename contract mismatch, timestamp truncation and mock mutation replay. Regression tests failed before fixes and passed afterward. Native runtime tests for capture lifecycle and Speech remain absent; compilation is not evidence of hardware reliability.
 
-## Final review and regression verification
+Original source was authored using public Apple API patterns; the supplied archive has no license/provenance statement and remains ignored. The repository uses deterministic native Xcode static-library targets, plus a Swift package for host tests. The originally proposed nested repository was superseded by the user-initialized OPMS root.
 
-An independent reviewer identified four important issues: unbounded imported durations could trap in UI integer conversion; native filename acceptance differed from schema; fractional imported dates were truncated; mock policy/report replay could conflict or overwrite newer state. Added regression tests, observed failures, then fixed duration bounds/nontrapping display, CAF filename validation, explicit fractional RFC3339 codec and mutation replay caches. Final test run: 12 XCTest tests passed; 4 Python protocol tests passed; a Swift-produced full Meeting export passed independent JSON Schema validation. Final generic iOS build succeeded. An AppIntents metadata extraction warning is expected because the app has no AppIntents dependency; unavailable sandbox CoreSimulator services did not prevent the device-target build.
+## Remaining work and known limits
 
-No physical microphone/Speech test has run. Native capture/rotation/interruption/locked-device behavior and Speech timeout/cancellation still need hardware acceptance. The test suite does not establish those guarantees.
+Follow docs/VALIDATION.md for both target iPads, offline locales, long/locked/background recordings, rotation gaps, interruptions, low disk, crash recovery and privacy checks. No gapless recording, reliable locked-device recording, secure flash erasure or regulatory certification is claimed.
 
-GitHub connector lookup of grandaxine/open-pharma-meeting returned 404 (absent or inaccessible to the connection), so remote existence/visibility remains unverified. Git history has no commits yet. CI is configured but not remotely executed.
+Production identity, Keychain-backed SecureStorage, tenant authorization, deployed corporate backend, executable HTTP conformance, enterprise report synchronization, retention/MDM automation and pharmaceutical safety review workflows remain subsequent milestones. No production upload or credential collection is enabled.
+
+## Continuity update
+
+Project memory is stored in AGENTS.md and docs/PROJECT_CONTEXT.md. This documentation update is local until separately committed/pushed; the published baseline above remains the verified initial commit. Inspect Git status/log before assuming memory changes are published. Prior agent attempts to stage/commit were blocked by sandbox `.git` write restrictions; the user completed initial publication through their own Terminal.
