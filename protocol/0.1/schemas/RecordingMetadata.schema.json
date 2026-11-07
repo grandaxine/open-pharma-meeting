@@ -1,0 +1,62 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://openpharmameeting.invalid/protocol/0.1/RecordingMetadata.schema.json",
+  "title": "RecordingMetadata",
+  "type": "object",
+  "properties": {
+    "schemaVersion": {
+      "const": "0.1"
+    },
+    "state": {
+      "type": "string",
+      "enum": [
+        "ready",
+        "recording",
+        "paused",
+        "completed",
+        "interrupted"
+      ]
+    },
+    "mediaType": {
+      "const": "audio/x-caf"
+    },
+    "chunks": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "filename": {
+            "type": "string",
+            "pattern": "^[A-Za-z0-9_-][A-Za-z0-9_.-]{0,126}\\.caf$"
+          },
+          "duration": {
+            "type": "number",
+            "exclusiveMinimum": 0,
+            "maximum": 86400
+          },
+          "sha256": {
+            "type": "string",
+            "pattern": "^[a-fA-F0-9]{64}$"
+          }
+        },
+        "required": [
+          "filename",
+          "duration",
+          "sha256"
+        ],
+        "additionalProperties": true
+      }
+    },
+    "pendingFilename": {
+      "type": "string",
+      "pattern": "^[A-Za-z0-9_-][A-Za-z0-9_.-]{0,126}\\.caf$"
+    }
+  },
+  "required": [
+    "schemaVersion",
+    "state",
+    "mediaType",
+    "chunks"
+  ],
+  "additionalProperties": true
+}

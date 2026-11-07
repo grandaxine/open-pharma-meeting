@@ -1,0 +1,98 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://openpharmameeting.invalid/protocol/0.1/AccessPolicy.schema.json",
+  "title": "AccessPolicy",
+  "type": "object",
+  "properties": {
+    "schemaVersion": {
+      "const": "0.1"
+    },
+    "revision": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "audio": {
+      "type": "object",
+      "properties": {
+        "visibility": {
+          "type": "string",
+          "enum": [
+            "Private",
+            "Restricted",
+            "Organization"
+          ]
+        },
+        "employeeIDs": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        }
+      },
+      "required": [
+        "visibility",
+        "employeeIDs"
+      ],
+      "additionalProperties": true
+    },
+    "transcript": {
+      "type": "object",
+      "properties": {
+        "visibility": {
+          "type": "string",
+          "enum": [
+            "Private",
+            "Restricted",
+            "Organization"
+          ]
+        },
+        "employeeIDs": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        }
+      },
+      "required": [
+        "visibility",
+        "employeeIDs"
+      ],
+      "additionalProperties": true
+    },
+    "reports": {
+      "type": "object",
+      "properties": {
+        "visibility": {
+          "type": "string",
+          "enum": [
+            "Private",
+            "Restricted",
+            "Organization"
+          ]
+        },
+        "employeeIDs": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        }
+      },
+      "required": [
+        "visibility",
+        "employeeIDs"
+      ],
+      "additionalProperties": true
+    }
+  },
+  "required": [
+    "schemaVersion",
+    "revision",
+    "audio",
+    "transcript",
+    "reports"
+  ],
+  "additionalProperties": true
+}

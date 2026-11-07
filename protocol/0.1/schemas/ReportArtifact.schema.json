@@ -1,0 +1,38 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://openpharmameeting.invalid/protocol/0.1/ReportArtifact.schema.json",
+  "title": "ReportArtifact",
+  "type": "object",
+  "properties": {
+    "schemaVersion": {
+      "const": "0.1"
+    },
+    "id": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "meetingID": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "type": {
+      "type": "string",
+      "minLength": 1
+    },
+    "content": {
+      "type": "object"
+    },
+    "requiresHumanReview": {
+      "type": "boolean"
+    }
+  },
+  "required": [
+    "schemaVersion",
+    "id",
+    "meetingID",
+    "type",
+    "content",
+    "requiresHumanReview"
+  ],
+  "additionalProperties": true
+}

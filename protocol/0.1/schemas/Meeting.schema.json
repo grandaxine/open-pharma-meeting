@@ -1,0 +1,65 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://openpharmameeting.invalid/protocol/0.1/Meeting.schema.json",
+  "title": "Meeting",
+  "type": "object",
+  "properties": {
+    "schemaVersion": {
+      "const": "0.1"
+    },
+    "id": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "createdAt": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "title": {
+      "type": "string",
+      "minLength": 1
+    },
+    "language": {
+      "type": "string",
+      "minLength": 1
+    },
+    "consentAcknowledgedAt": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "recording": {
+      "$ref": "RecordingMetadata.schema.json"
+    },
+    "transcript": {
+      "$ref": "Transcript.schema.json"
+    },
+    "accessPolicy": {
+      "$ref": "AccessPolicy.schema.json"
+    },
+    "reports": {
+      "type": "array",
+      "items": {
+        "$ref": "ReportArtifact.schema.json"
+      }
+    },
+    "extensions": {
+      "type": "object",
+      "propertyNames": {
+        "pattern": "^.+\\..+$"
+      },
+      "additionalProperties": true
+    }
+  },
+  "required": [
+    "schemaVersion",
+    "id",
+    "createdAt",
+    "title",
+    "language",
+    "recording",
+    "accessPolicy",
+    "reports",
+    "extensions"
+  ],
+  "additionalProperties": true
+}

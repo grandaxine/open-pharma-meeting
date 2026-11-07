@@ -1,0 +1,11 @@
+{
+  "schemaVersion": "0.1",
+  "protocolVersions": [
+    "0.1"
+  ],
+  "issuer": "https://identity.example.invalid",
+  "apiBaseURL": "https://gateway.example.invalid/v1",
+  "scopes": [
+    "meetings:read"
+  ]
+}

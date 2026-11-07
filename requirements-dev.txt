@@ -1,0 +1,2 @@
+# Test tooling only; not linked into the app.
+jsonschema==4.26.0

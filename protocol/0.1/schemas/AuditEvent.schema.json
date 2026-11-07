@@ -1,0 +1,59 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://openpharmameeting.invalid/protocol/0.1/AuditEvent.schema.json",
+  "title": "AuditEvent",
+  "type": "object",
+  "properties": {
+    "schemaVersion": {
+      "const": "0.1"
+    },
+    "id": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "occurredAt": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "tenantID": {
+      "type": "string",
+      "minLength": 1
+    },
+    "subjectID": {
+      "type": "string",
+      "minLength": 1
+    },
+    "action": {
+      "type": "string",
+      "minLength": 1
+    },
+    "resourceID": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "outcome": {
+      "type": "string",
+      "enum": [
+        "allowed",
+        "denied",
+        "failed"
+      ]
+    },
+    "policyRevision": {
+      "type": "integer",
+      "minimum": 0
+    }
+  },
+  "required": [
+    "schemaVersion",
+    "id",
+    "occurredAt",
+    "tenantID",
+    "subjectID",
+    "action",
+    "resourceID",
+    "outcome",
+    "policyRevision"
+  ],
+  "additionalProperties": true
+}

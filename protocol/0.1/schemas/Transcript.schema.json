@@ -1,0 +1,32 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://openpharmameeting.invalid/protocol/0.1/Transcript.schema.json",
+  "title": "Transcript",
+  "type": "object",
+  "properties": {
+    "schemaVersion": {
+      "const": "0.1"
+    },
+    "meetingID": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "language": {
+      "type": "string",
+      "minLength": 1
+    },
+    "segments": {
+      "type": "array",
+      "items": {
+        "$ref": "TranscriptSegment.schema.json"
+      }
+    }
+  },
+  "required": [
+    "schemaVersion",
+    "meetingID",
+    "language",
+    "segments"
+  ],
+  "additionalProperties": true
+}

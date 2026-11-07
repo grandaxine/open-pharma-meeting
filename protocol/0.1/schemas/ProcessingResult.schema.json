@@ -1,0 +1,27 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://openpharmameeting.invalid/protocol/0.1/ProcessingResult.schema.json",
+  "title": "ProcessingResult",
+  "type": "object",
+  "properties": {
+    "schemaVersion": {
+      "const": "0.1"
+    },
+    "jobID": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "reports": {
+      "type": "array",
+      "items": {
+        "$ref": "ReportArtifact.schema.json"
+      }
+    }
+  },
+  "required": [
+    "schemaVersion",
+    "jobID",
+    "reports"
+  ],
+  "additionalProperties": true
+}

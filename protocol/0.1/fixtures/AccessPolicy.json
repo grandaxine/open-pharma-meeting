@@ -1,0 +1,16 @@
+{
+  "schemaVersion": "0.1",
+  "revision": 0,
+  "audio": {
+    "visibility": "Private",
+    "employeeIDs": []
+  },
+  "transcript": {
+    "visibility": "Private",
+    "employeeIDs": []
+  },
+  "reports": {
+    "visibility": "Private",
+    "employeeIDs": []
+  }
+}

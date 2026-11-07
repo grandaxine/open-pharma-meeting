@@ -1,0 +1,42 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://openpharmameeting.invalid/protocol/0.1/ConnectorCapabilities.schema.json",
+  "title": "ConnectorCapabilities",
+  "type": "object",
+  "properties": {
+    "schemaVersion": {
+      "const": "0.1"
+    },
+    "protocolVersions": {
+      "type": "array",
+      "items": {
+        "const": "0.1"
+      }
+    },
+    "issuer": {
+      "type": "string",
+      "format": "uri",
+      "pattern": "^https://"
+    },
+    "apiBaseURL": {
+      "type": "string",
+      "format": "uri",
+      "pattern": "^https://"
+    },
+    "scopes": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "minLength": 1
+      }
+    }
+  },
+  "required": [
+    "schemaVersion",
+    "protocolVersions",
+    "issuer",
+    "apiBaseURL",
+    "scopes"
+  ],
+  "additionalProperties": true
+}
