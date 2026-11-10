@@ -10,6 +10,8 @@ Current state supersedes pre-publication observations in the historical design/p
 
 Repository: https://github.com/grandaxine/open-pharma-meeting — public, owner `grandaxine`, branch `main`.
 
+Current published `main`: `0c09216bcbff6ac1c3ea02e3229316a715d9a658` (`fix: add iPad app icons for TestFlight`), verified with `git ls-remote` on 2026-11-10. It was committed directly to `main` and pushed; no PR merge occurred. The local working tree was clean after that push, before this documentation update.
+
 Initial commit: `777338b6e2105b58a02a42db575c970d1931b9ef` — `feat: initialize open pharma meeting platform`.
 
 CI: https://github.com/grandaxine/open-pharma-meeting/actions/runs/42345635063 — **completed / success**, confirmed through GitHub connector after the user's push. Swift tests, native-export schema validation, protocol checks, source scan, reproducibility check and unsigned iPad build all passed.
@@ -26,7 +28,7 @@ CI: https://github.com/grandaxine/open-pharma-meeting/actions/runs/42345635063 �
 | Ten public schemas, fixtures and OpenAPI draft 0.1 | Implemented; structural tests and native-export validation passed |
 | Corporate testing without AI service | In-memory mock implemented; deployable HTTP backend is milestone 2 |
 | Governance/security/license/Android roadmap/CI | Present; Apache-2.0; no third-party runtime packages |
-| Public-source readiness and initial push | Completed for baseline; 66 published files, supplied archive/prototype excluded |
+| Public-source readiness and publication | Initial baseline and icon fix pushed to `main`; supplied archive/prototype and local `Tmp/` exports excluded |
 | Hardware validation / full Milestone 1 acceptance | Pending; see VALIDATION.md |
 
 ## Verification and review record
@@ -43,4 +45,4 @@ Production identity, Keychain-backed SecureStorage, tenant authorization, deploy
 
 ## Continuity update
 
-Project memory is stored in AGENTS.md and docs/PROJECT_CONTEXT.md. This documentation update is local until separately committed/pushed; the published baseline above remains the verified initial commit. Inspect Git status/log before assuming memory changes are published. Prior agent attempts to stage/commit were blocked by sandbox `.git` write restrictions; the user completed initial publication through their own Terminal.
+Project memory is stored in AGENTS.md and docs/PROJECT_CONTEXT.md. The 2026-11-10 icon fix and TestFlight upload record were published in `0c09216`; this later status refresh is local until committed and pushed. Inspect Git status and the remote branch before claiming it published. Git staging required sandbox escalation, after which commit and push succeeded. The local `Tmp/meeting.json` export must remain private and is covered by `.gitignore`.

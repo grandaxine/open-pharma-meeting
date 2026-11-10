@@ -16,9 +16,10 @@ The user supplied a detailed specification, approved proceeding after design/pla
 
 - Public repository/owner: https://github.com/grandaxine/open-pharma-meeting (`grandaxine`).
 - Initial commit: `777338b6e2105b58a02a42db575c970d1931b9ef` — `feat: initialize open pharma meeting platform`.
+- Current published `main` as verified by `git ls-remote` on 2026-11-10: `0c09216bcbff6ac1c3ea02e3229316a715d9a658` — `fix: add iPad app icons for TestFlight`. This was committed directly to `main` and pushed; there was no PR merge. It includes the icon fix, TestFlight status documentation and `/Tmp/` ignore rule. The local working tree was clean after that push, before this documentation update.
 - GitHub Actions run: https://github.com/grandaxine/open-pharma-meeting/actions/runs/42345635063 — **completed / success**, confirmed through GitHub connector after the user pushed.
 - CI covers 12 XCTest cases, native-export JSON Schema validation, 4 Python protocol tests, candidate source scan, generated artifact reproducibility and unsigned generic iOS build. No simulator UI or hardware execution was demonstrated.
-- Local development used Xcode 26.5/Swift 6.3.2. Initial published tree has 66 files; starter archive/prototype/audio files were absent. Repository was clean immediately after the user's initial push. This memory update introduces new local documentation changes; inspect Git status before claiming them committed.
+- Local development used Xcode 26.5/Swift 6.3.2. The initial published tree had 66 files; starter archive/prototype/audio files were absent. Check Git status and the remote branch before claiming subsequent documentation edits published.
 
 ## Implementation map
 
@@ -58,6 +59,8 @@ Server-side tenant authorization, SSO/OIDC PKCE, actual Keychain adapter, retent
 ## Environment gotchas
 
 Workspace: `/Users/Gleam/Documents/OPMS`. User Terminal successfully authenticated `gh` with repo/workflow scopes and performed init/remote/commit/push. This agent environment previously denied `.git/config` and `.git/index.lock` writes and CLI DNS/keychain access. Do not ask for tokens. GitHub connector GET/fetch can verify repository and Actions despite CLI failures. Recheck capabilities rather than assume unchanged forever.
+
+On 2026-11-10, `git add` required escalation for `.git/index.lock`; `git commit` and `git push origin main` then succeeded. `git ls-remote` confirmed the remote commit after escalation when sandbox DNS failed. `Tmp/meeting.json` is a local meeting export containing transcript/recording fields; `/Tmp/` is ignored and its contents must stay out of the public repository.
 
 Local sandbox host-test invocation that worked:
 
