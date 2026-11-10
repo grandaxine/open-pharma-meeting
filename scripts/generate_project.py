@@ -9,6 +9,9 @@ def obj(name, body): objects.append(f'{uid(name)} = {{ {body} }};'); return uid(
 modules=['MeetingDataKit','MeetingCaptureKit','TranscriptionKit','PrivacyPolicyKit','EnterpriseConnectorKit','ReportKit']
 allnames=modules+['OpenPharmaMeeting']
 products={}; files=[]
+assets_ref=obj('App/Assets.xcassets', 'isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = "App/Assets.xcassets"; sourceTree = SOURCE_ROOT;')
+files.append(assets_ref)
+assets_build=obj('App/Assets.xcassets build', f'isa = PBXBuildFile; fileRef = {assets_ref};')
 for name in allnames:
     app=name=='OpenPharmaMeeting'
     products[name]=obj(name+'product', f'isa = PBXFileReference; explicitFileType = {"wrapper.application" if app else "archive.ar"}; path = {name+".app" if app else "lib"+name+".a"}; sourceTree = BUILT_PRODUCTS_DIR;')
@@ -27,18 +30,19 @@ for name in allnames:
         links.append(obj(name+dep+'link',f'isa = PBXBuildFile; fileRef = {products[dep]};'))
     sources=obj(name+'sources',f'isa = PBXSourcesBuildPhase; buildActionMask = 2147483647; files = ({",".join(builds)},); runOnlyForDeploymentPostprocessing = 0;')
     frameworks=obj(name+'frameworks',f'isa = PBXFrameworksBuildPhase; buildActionMask = 2147483647; files = ({(",".join(links)+",") if links else ""}); runOnlyForDeploymentPostprocessing = 0;')
+    resources=obj(name+'resources',f'isa = PBXResourcesBuildPhase; buildActionMask = 2147483647; files = ({assets_build},); runOnlyForDeploymentPostprocessing = 0;') if app else None
     configs=[]
     for c in ['Debug','Release']:
-        extra='GENERATE_INFOPLIST_FILE = NO; INFOPLIST_FILE = App/Info.plist; TARGETED_DEVICE_FAMILY = 2;' if app else 'DEFINES_MODULE = YES; SKIP_INSTALL = YES;'
+        extra='GENERATE_INFOPLIST_FILE = NO; INFOPLIST_FILE = App/Info.plist; TARGETED_DEVICE_FAMILY = 2; ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;' if app else 'DEFINES_MODULE = YES; SKIP_INSTALL = YES;'
         configs.append(obj(name+c,f'''isa = XCBuildConfiguration; name = {c}; buildSettings = {{
         SDKROOT = iphoneos; IPHONEOS_DEPLOYMENT_TARGET = 16.0; SWIFT_VERSION = 5.0;
         PRODUCT_NAME = "$(TARGET_NAME)"; PRODUCT_BUNDLE_IDENTIFIER = org.openpharmameeting.{name};
-        ALWAYS_SEARCH_USER_PATHS = NO; CODE_SIGN_STYLE = Automatic; CURRENT_PROJECT_VERSION = 1; MARKETING_VERSION = 0.1.0;
+        ALWAYS_SEARCH_USER_PATHS = NO; CODE_SIGN_STYLE = Automatic; CURRENT_PROJECT_VERSION = 2; MARKETING_VERSION = 0.1.0;
         SWIFT_OPTIMIZATION_LEVEL = "{'-Onone' if c=='Debug' else '-O'}"; {extra}
         SUPPORTS_MACCATALYST = NO; ENABLE_USER_SCRIPT_SANDBOXING = YES;
         }};'''))
     conf=obj(name+'configs',f'isa = XCConfigurationList; buildConfigurations = ({",".join(configs)},); defaultConfigurationIsVisible = 0; defaultConfigurationName = Release;')
-    obj(name+'target',f'''isa = PBXNativeTarget; name = {name}; productName = {name}; productReference = {products[name]}; productType = "com.apple.product-type.{"application" if app else "library.static"}"; buildConfigurationList = {conf}; buildPhases = ({sources},{frameworks},); buildRules = (); dependencies = ({(",".join(dependencies)+",") if dependencies else ""});''')
+    obj(name+'target',f'''isa = PBXNativeTarget; name = {name}; productName = {name}; productReference = {products[name]}; productType = "com.apple.product-type.{"application" if app else "library.static"}"; buildConfigurationList = {conf}; buildPhases = ({sources},{frameworks}{(','+resources) if resources else ''},); buildRules = (); dependencies = ({(",".join(dependencies)+",") if dependencies else ""});''')
 productsGroup=obj('products',f'isa = PBXGroup; children = ({",".join(products.values())},); name = Products; sourceTree = "<group>";')
 group=obj('group',f'isa = PBXGroup; children = ({",".join(files)},{productsGroup},); sourceTree = "<group>";')
 pconfigs=[]

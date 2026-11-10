@@ -5,6 +5,7 @@
 # Build outputs and developer-local settings
 .build/
 DerivedData/
+/Tmp/
 *.xcuserstate
 xcuserdata/
 # Credentials and local configuration

@@ -1,6 +1,10 @@
 # Project memory — Open Pharma Meeting
 
-Last updated: 2026-11-07. This file is the handoff for future sessions; no hidden conversational memory is required.
+Last updated: 2026-11-10. This file is the handoff for future sessions; no hidden conversational memory is required.
+
+## TestFlight upload (2026-11-10)
+
+Xcode Organizer reported **“App upload complete”** for Open Pharma Meeting 0.1.0 (2), bundle ID `org.openpharmameeting.OpenPharmaMeeting`, under Evgeniy Tikhonov's Apple Developer team. App Store Connect processing and tester availability were not verified. An earlier 0.1.0 (1) upload failed because the app lacked `CFBundleIconName` and a 152×152 iPad icon. The fix adds `App/Assets.xcassets/AppIcon.appiconset`, connects it in `scripts/generate_project.py`, and sets `CFBundleIconName` in `App/Info.plist`. A fresh unsigned Release archive succeeded locally; its built app contained `AppIcon76x76@2x~ipad.png` at 152×152 and `CFBundleIconName=AppIcon`. The signed archive and upload succeeded through Xcode UI. The Xcode project is generated and intentionally keeps no developer team, so select the team locally before a future upload. No physical-device acceptance has been completed.
 
 ## Mission and accepted direction
 

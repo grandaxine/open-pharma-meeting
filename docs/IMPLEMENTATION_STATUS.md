@@ -1,4 +1,8 @@
-# Implementation status — 2026-11-07
+# Implementation status — 2026-11-10
+
+## TestFlight upload
+
+Xcode Organizer reported “App upload complete” for version 0.1.0 (2) on 2026-11-10. App Store Connect processing and tester availability remain unverified. The first upload, 0.1.0 (1), failed on missing app icon metadata and iPad icon. The project now includes an asset catalog with required iPad icons, `CFBundleIconName=AppIcon`, and generator support for the icon resources. A fresh unsigned Release archive succeeded and contained a 152×152 iPad icon. Physical iPad validation remains pending.
 
 Current state supersedes pre-publication observations in the historical design/plan. Read PROJECT_CONTEXT.md for the full handoff.
 
