@@ -2,7 +2,7 @@
 
 ## Local text de-identification proposed
 
-The user clarified that the iPad records and transcribes locally, removes identifiers of physicians and patients locally, and sends only reviewed text to a company-approved cloud LLM. Drug names, competitor brands, medical terms, and non-identifying visit content must remain for analysis of messages, objections, visit stages, next-visit preparation, and possible regulatory risks with human review. The revised hybrid design is in `docs/superpowers/specs/2026-11-13-local-text-deidentification-design.md`. There is no implementation, model dependency, or external upload yet; the current JSON export remains raw. The design awaits user review and hardware/model feasibility checks.
+The user approved the hybrid design: the iPad records and transcribes locally, removes identifiers of physicians and patients locally, and sends only reviewed text to a company-approved cloud LLM. Drug names, competitor brands, medical terms, and non-identifying visit content must remain for analysis of messages, objections, visit stages, next-visit preparation, and possible regulatory risks with human review. The design is in `docs/superpowers/specs/2026-11-13-local-text-deidentification-design.md`; the implementation plan is in `docs/superpowers/plans/2026-11-13-local-text-deidentification.md` pending user review. There is no implementation, model dependency, or external upload yet; the current JSON export remains raw. Hardware/model feasibility checks are the first gate.
 
 ## TestFlight 0.1.4 (6): opening speech restored in user retest
 
