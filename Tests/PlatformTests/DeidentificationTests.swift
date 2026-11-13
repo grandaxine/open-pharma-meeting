@@ -153,4 +153,27 @@ final class DeidentificationTests: XCTestCase {
         let draft = try IdentityRules.detect(in: source)
         XCTAssertEqual(draft.count, 1)
     }
+
+    func testGreetingNameIsMaskedAtEveryMentionAndBlocksReintroduction() async throws {
+        let detector = PhraseDetector(phrase: "несуществующее имя", kind: .doctor)
+        let source = transcript("Здравствуйте Мариванна, я из компании Нотис. Мариванна, обсудим препарат Риго.")
+        let draft = try await DeidentificationService.makeDraft(transcript: source, detector: detector)
+        XCTAssertEqual(draft.redactedText,
+                       "Здравствуйте [DOCTOR_1], я из компании Нотис. [DOCTOR_1], обсудим препарат Риго.")
+        do {
+            _ = try await DeidentificationService.approve(
+                draft: draft,
+                reviewedText: "Здравствуйте Мариванна, я из компании Нотис. [DOCTOR_1], обсудим препарат Риго.",
+                detector: detector)
+            XCTFail("A reintroduced doctor name must block export")
+        } catch DeidentificationError.residualIdentifier { }
+    }
+
+    func testGreetingNameDoesNotMaskSameNamedDrug() async throws {
+        let source = transcript("Здравствуйте Петров. Обсудим препарат Петров, затем Петров ответит.")
+        let draft = try await DeidentificationService.makeDraft(
+            transcript: source, detector: PhraseDetector(phrase: "нет такого имени", kind: .doctor))
+        XCTAssertEqual(draft.redactedText,
+                       "Здравствуйте [DOCTOR_1]. Обсудим препарат Петров, затем [DOCTOR_1] ответит.")
+    }
 }

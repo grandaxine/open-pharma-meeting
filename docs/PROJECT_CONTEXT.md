@@ -2,6 +2,10 @@
 
 Last updated: 2026-11-13. This file is the handoff for future sessions; no hidden conversational memory is required.
 
+## Post-0.1.6 iPad feedback: missed doctor address (2026-11-13)
+
+The iPad 10 review screen proposed only two replacements for a synthetic conversation and left a colloquial doctor address visible twice in export text. A read-only copy of the latest JSON in `/private/tmp/opms-deid-diagnosis/` confirms both occurrences in the 69-segment transcript; its one audio chunk remains on the iPad. Branch `fix/direct-address-identifiers` adds a local greeting-name rule, repeated whole-word matching, drug/brand-context exemption, and a final scan that rejects manual reintroduction. Two new tests pass, along with all 32 Swift tests, 4 protocol tests, source scan and generic iOS build. The fix is **not in TestFlight yet**. A versioned, locally bundled name/brand lexicon is a possible next step, but must preserve company and competitor mentions and handle name/brand collisions; no third-party word list has been added. Model recall and privacy adequacy remain unproven; never assume 0.1.6 output is safe to share without inspection.
+
 ## TestFlight 0.1.6 (8): local text trial fixes (2026-11-13)
 
 The 0.1.5 review exposed overmasking of an identically named drug, UI blocking during 610 MB model file verification, and delayed detector release after review dismissal. Build 0.1.6 fixes those paths and adds cancellation for import and final approval. Xcode Organizer showed **App upload complete** and **Uploaded to Apple** at 19:20. Its signed archive has version/build 0.1.6 (8), the correct encryption declaration, and a matching llama dSYM. Host checks passed (30 Swift tests, 4 protocol tests, source scan, plist lint, generic iOS build). App Store Connect processing and iPad 9/10 model performance, recall, brand preservation, and memory behavior are still unverified. Keep real sensitive visits out of this trial until device testing and human review establish suitability. The optional official Qwen3-0.6B-Q8_0 GGUF must be transferred to the iPad through Files and imported; it is not shipped in the app.
