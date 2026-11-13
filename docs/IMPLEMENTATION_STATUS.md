@@ -1,5 +1,9 @@
 # Implementation status — 2026-11-13
 
+## Local text de-identification proposed
+
+The user chose text-only external analysis with all de-identification performed on the iPad. A draft hybrid design lives in `docs/superpowers/specs/2026-11-13-local-text-deidentification-design.md`; it has no implementation, model dependency, or external upload yet. The current JSON export remains raw and must not be treated as an approved analysis artifact. The design awaits user review and device/model feasibility checks.
+
 ## TestFlight 0.1.4 (6): opening speech restored in user retest
 
 A 19.941s iPad recording had one intact CAF but first recognized words at 10.8s, excluding capture chunk boundaries as the cause. Its SHA-256 and early audio signal were verified, and a local AVAudioFile slice preserved all frames and the opening waveform. The prior recognition operation canceled on its first final result. It now accumulates final utterances through `SFSpeechRecognitionTaskDelegate` and waits for the whole task to finish; two new tests cover retained and deduplicated words. Eighteen Swift tests, four protocol tests, the public-source scan and unsigned iOS build passed. Xcode Organizer reported **App upload complete** for signed 0.1.4 (6). The user subsequently confirmed recognition starts at the beginning on iPad. No new JSON was compared and broader physical acceptance remains outstanding; existing audio is preserved for retranscription.

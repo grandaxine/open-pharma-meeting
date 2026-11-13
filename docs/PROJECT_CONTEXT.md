@@ -2,6 +2,10 @@
 
 Last updated: 2026-11-13. This file is the handoff for future sessions; no hidden conversational memory is required.
 
+## Local text de-identification proposal (2026-11-13)
+
+The user wants only reduced text, not audio, to leave the iPad for external analysis. All de-identification inference must run locally. A draft hybrid design is in `docs/superpowers/specs/2026-11-13-local-text-deidentification-design.md`: exact detectors plus a local model, human review, and a fail-closed release gate. No implementation or model dependency has been added; the design awaits user review. The present raw JSON export is not an analysis-safe artifact.
+
 ## TestFlight 0.1.4 (6): opening speech restored in user retest (2026-11-13)
 
 A third, 19.941s iPad recording had one intact CAF file but its first recognized word at 10.8s. Its SHA-256 matched the stored metadata, with substantial signal from the first seconds; the gap was independent of 60s capture chunks and 45s recognition slicing. A local AVAudioFile reproduction preserved all 319,050 frames and the opening signal. The old `RecognitionOperation` canceled its task on the first `isFinal` callback. It now uses `SFSpeechRecognitionTaskDelegate`, accumulates final utterances, and completes only after `didFinishSuccessfully`; unit tests cover accumulation and deduplication. Eighteen Swift tests, four protocol tests, the public-source scan and unsigned iOS build passed. Xcode Organizer reported **App upload complete** for signed 0.1.4 (6). The user subsequently confirmed recognition now starts at the beginning on iPad. This is a user-reported device retest, without a new JSON comparison or full acceptance run. Existing recordings retain their audio and can be retranscribed.
