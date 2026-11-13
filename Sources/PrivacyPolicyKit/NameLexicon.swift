@@ -64,17 +64,17 @@ public enum NameLexicon {
     public static func addressVariants(for address: String) -> [String] {
         let folded = address.lowercased()
         if let group = spokenGroups.first(where: { $0.contains { $0.lowercased() == folded } }) {
-            return group
+            return group + [String(group[0].split(separator: " ")[0])]
         }
         let parts = address.split(separator: " ").map(String.init)
         if parts.count == 2, isPatronymic(parts[1]) {
-            return patronymicVariants(for: parts[1]).flatMap { [parts[0] + " " + $0, parts[0] + $0] }
+            return patronymicVariants(for: parts[1]).flatMap { [parts[0] + " " + $0, parts[0] + $0] } + [parts[0]]
         }
         if parts.count == 1 {
             for name in givenNames where folded.hasPrefix(name.lowercased()) && folded.count > name.count {
                 let rest = String(address.dropFirst(name.count))
                 if isPatronymic(rest) {
-                    return patronymicVariants(for: rest).flatMap { [name + " " + $0, name + $0] }
+                    return patronymicVariants(for: rest).flatMap { [name + " " + $0, name + $0] } + [name]
                 }
             }
         }

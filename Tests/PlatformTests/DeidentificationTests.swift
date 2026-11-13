@@ -27,6 +27,31 @@ final class DeidentificationTests: XCTestCase {
         Transcript(meetingID: UUID(), language: "ru-RU", segments: [TranscriptSegment(start: 0, end: 1, text: text)])
     }
 
+    func testApprovedModelProfilesHaveDistinctPinnedFiles() {
+        XCTAssertEqual(Set(LocalModelProfile.allCases.map(\.id)), ["qwen3-0.6b-q8", "gemma3-1b-q4"])
+        XCTAssertEqual(Set(LocalModelProfile.allCases.map(\.filename)).count, 2)
+        XCTAssertEqual(LocalModelProfile.gemma.expectedSHA256,
+                       "8ccc5cd1f1b3602548715ae25a66ed73fd5dc68a210412eea643eb20eb75a135")
+        XCTAssertEqual(LocalModelProfile.gemma.sourceURL.host, "huggingface.co")
+        XCTAssertTrue(LocalModelProfile.gemma.sourceURL.absoluteString.contains("ggml-org/gemma-3-1b-it-GGUF"))
+    }
+
+    func testModelSpecificPromptFramingAndIdentityScope() {
+        let source = "Здравствуйте Евгений Петрович. Я Сергей. Обсудим Кискали на улице Пушкина."
+        let qwen = LocalModelProfile.qwen.prompt(source: source, language: "ru-RU",
+                                                 brandHints: "Кискали", nameHints: "Евгений Петрович, Сергей")
+        let gemma = LocalModelProfile.gemma.prompt(source: source, language: "ru-RU",
+                                                   brandHints: "Кискали", nameHints: "Евгений Петрович, Сергей")
+        XCTAssertTrue(qwen.contains("/no_think"))
+        XCTAssertTrue(qwen.contains("<|im_start|>"))
+        XCTAssertFalse(gemma.contains("/no_think"))
+        XCTAssertFalse(gemma.contains("<|im_start|>"))
+        XCTAssertTrue(gemma.contains("<start_of_turn>"))
+        XCTAssertTrue(gemma.contains("Кискали"))
+        XCTAssertTrue(gemma.contains("улице Пушкина"))
+        XCTAssertTrue(gemma.contains("представителя"))
+    }
+
     func testDirectIdentifiersAreMasked() async throws {
         let source = transcript("Доктор Петров, телефон +7 999 123-45-67, обсуждал препарат Астразенека.")
         let draft = try await DeidentificationService.makeDraft(transcript: source, detector: PhraseDetector(phrase: "Петров", kind: .doctor))
@@ -154,6 +179,40 @@ final class DeidentificationTests: XCTestCase {
         XCTAssertEqual(draft.count, 1)
     }
 
+    func testModelResponsePreservesStreetNameButMasksDoctorOfSameName() throws {
+        let source = "Доктор Пушкина работает на улице Пушкина."
+        let output = "{\"entities\":[{\"quote\":\"Пушкина\",\"kind\":\"doctor\"}]}"
+        let spans = try EntityResponseParser.parse(output, in: source)
+        XCTAssertEqual(spans.count, 1)
+        XCTAssertEqual((source as NSString).substring(with: NSRange(location: spans[0].startUTF16,
+                                                                   length: spans[0].endUTF16 - spans[0].startUTF16)), "Пушкина")
+        XCTAssertEqual(spans[0].startUTF16, 7)
+    }
+
+    func testModelAddressLabelPreservesStandaloneStreetButKeepsFullAddress() throws {
+        let street = "На улице Пушкина обсудили Кискали."
+        let streetOnly = "{\"entities\":[{\"quote\":\"улице Пушкина\",\"kind\":\"address\"}]}"
+        XCTAssertTrue(try EntityResponseParser.parse(streetOnly, in: street).isEmpty)
+        let full = "Адрес врача: улица Пушкина, дом 5."
+        let fullAddress = "{\"entities\":[{\"quote\":\"улица Пушкина, дом 5\",\"kind\":\"address\"}]}"
+        XCTAssertEqual(try EntityResponseParser.parse(fullAddress, in: full).count, 1)
+    }
+
+    func testGreetingRulePreservesStreetWithSameName() async throws {
+        let source = transcript("Здравствуйте Пушкина. Встречаемся на улице Пушкина.")
+        let draft = try await DeidentificationService.makeDraft(
+            transcript: source, detector: PhraseDetector(phrase: "несуществующее имя", kind: .doctor))
+        XCTAssertEqual(draft.redactedText, "Здравствуйте [DOCTOR_1]. Встречаемся на улице Пушкина.")
+    }
+
+    func testLinkedFullDoctorAddressIsRemovedButUnlinkedStreetRemains() async throws {
+        let source = transcript("Адрес врача: улица Пушкина, дом 5. Встречаемся на улице Пушкина и обсудим Кискали.")
+        let draft = try await DeidentificationService.makeDraft(
+            transcript: source, detector: PhraseDetector(phrase: "несуществующее имя", kind: .doctor))
+        XCTAssertEqual(draft.redactedText,
+                       "Адрес врача: [ADDRESS_1]. Встречаемся на улице Пушкина и обсудим Кискали.")
+    }
+
     func testGreetingNameIsMaskedAtEveryMentionAndBlocksReintroduction() async throws {
         let detector = PhraseDetector(phrase: "несуществующее имя", kind: .doctor)
         let source = transcript("Здравствуйте Мариванна, я из компании Нотис. Мариванна, обсудим препарат Риго.")
@@ -167,6 +226,15 @@ final class DeidentificationTests: XCTestCase {
                 detector: detector)
             XCTFail("A reintroduced doctor name must block export")
         } catch DeidentificationError.residualIdentifier { }
+    }
+
+    func testDoctorGivenNameLaterIsMaskedButRepresentativeAndStreetRemain() async throws {
+        let source = transcript("Здравствуйте Евгений Петрович. Меня зовут Сергей, я представитель. Евгений, обсудим Кискали на улице Пушкина.")
+        let draft = try await DeidentificationService.makeDraft(
+            transcript: source, detector: PhraseDetector(phrase: "несуществующее имя", kind: .doctor))
+        XCTAssertFalse(draft.redactedText.contains("Евгений"))
+        XCTAssertTrue(draft.redactedText.contains("Сергей"))
+        XCTAssertTrue(draft.redactedText.contains("Кискали на улице Пушкина"))
     }
 
     func testGreetingNameDoesNotMaskSameNamedDrug() async throws {

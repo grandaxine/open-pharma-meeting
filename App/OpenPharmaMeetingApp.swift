@@ -29,7 +29,11 @@ struct MeetingDocument: FileDocument {
     @State private var export = false
     @State private var importing = false
     @State private var modelImporting = false
-    @State private var modelReady = LocalModelStore.installedURL != nil
+    @State private var activeModel = LocalModelStore.activeProfile
+    @State private var installedModels = Set(LocalModelStore.installedProfiles)
+    @State private var importTarget: LocalModelProfile = .qwen
+    @State private var modelError: String?
+    @State private var analysisError: String?
     @State private var modelImportTask: Task<Void, Never>?
     @State private var reviewOpen = false
     @State private var reviewDraft: AnalysisTextDraft?
@@ -39,6 +43,7 @@ struct MeetingDocument: FileDocument {
     @State private var document = MeetingDocument()
     private var selected: Meeting? { meetings.first { $0.id == selection } }
     private var active: Bool { recorder.meeting != nil }
+    private var modelReady: Bool { installedModels.contains(activeModel) }
     var body: some View {
         NavigationSplitView {
             List(selection: $selection) {
@@ -61,8 +66,47 @@ struct MeetingDocument: FileDocument {
                         Text("Русский").tag("ru-RU")
                         Text("Deutsch").tag("de-DE")
                     }.disabled(active || busy)
-                    Button(modelReady ? "Replace local model…" : "Import local model…") { modelImporting = true }
-                        .disabled(active || busy)
+                    VStack(alignment: .leading, spacing: 8) {
+                        Text("Local text model").font(.headline)
+                        ForEach(LocalModelProfile.allCases, id: \.id) { profile in
+                            HStack {
+                                VStack(alignment: .leading) {
+                                    Text(verbatim: profile.displayName)
+                                    if installedModels.contains(profile) {
+                                        Text("Installed on this iPad").font(.caption).foregroundStyle(.secondary)
+                                    } else {
+                                        Text("Not installed").font(.caption).foregroundStyle(.secondary)
+                                    }
+                                    Link("Verified model file", destination: profile.sourceURL)
+                                        .font(.caption)
+                                }
+                                Spacer()
+                                if installedModels.contains(profile) && activeModel != profile {
+                                    Button("Use model") {
+                                        do { try LocalModelStore.select(profile); activeModel = profile; modelError = nil }
+                                        catch { modelError = modelMessage(for: error) }
+                                    }.disabled(active || busy)
+                                }
+                                if activeModel == profile && installedModels.contains(profile) {
+                                    Label("Active", systemImage: "checkmark.circle.fill")
+                                        .foregroundStyle(.green)
+                                }
+                                Button {
+                                    importTarget = profile
+                                    modelError = nil
+                                    modelImporting = true
+                                } label: {
+                                    if installedModels.contains(profile) { Text("Replace…") }
+                                    else { Text("Import…") }
+                                }.disabled(active || busy)
+                            }
+                        }
+                        Text(String(format: NSLocalizedString("App version %@ (%@)", comment: "Version and build"),
+                                    Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "?",
+                                    Bundle.main.infoDictionary?["CFBundleVersion"] as? String ?? "?"))
+                            .font(.caption).foregroundStyle(.secondary)
+                        if let modelError { Text(modelError).foregroundStyle(.orange) }
+                    }
                     if modelImportTask != nil {
                         ProgressView("Importing and verifying model on this iPad…")
                         Button("Cancel model import") { modelImportTask?.cancel() }
@@ -120,11 +164,17 @@ struct MeetingDocument: FileDocument {
                             }
                             .buttonStyle(.borderedProminent)
                             .disabled(active || busy || !modelReady)
+                            if modelReady {
+                                Text(String(format: NSLocalizedString("Active model: %@", comment: "Selected local model"),
+                                            activeModel.displayName))
+                                    .font(.footnote).foregroundStyle(.secondary)
+                            }
+                            if let analysisError { Text(analysisError).foregroundStyle(.orange) }
                             if busy && analysisTask != nil {
                                 Button("Cancel de-identification") { analysisTask?.cancel() }
                             }
                             if !modelReady {
-                                Text("Import the approved Qwen3-0.6B-Q8_0.gguf model to enable local de-identification.")
+                                Text("Import a verified local model to enable de-identification.")
                                     .font(.footnote)
                             }
                             let paragraphs = t.paragraphs()
@@ -171,11 +221,12 @@ struct MeetingDocument: FileDocument {
         .fileImporter(isPresented: $modelImporting, allowedContentTypes: [.item]) { result in
             do {
                 let source = try result.get()
+                let target = importTarget
                 busy = true
                 modelImportTask = Task { @MainActor in
                     defer { busy = false; modelImportTask = nil }
                     let worker = Task.detached(priority: .userInitiated) {
-                        try LocalModelStore.importApprovedModel(from: source)
+                        try LocalModelStore.importApprovedModel(from: source, as: target)
                     }
                     do {
                         try await withTaskCancellationHandler {
@@ -184,16 +235,18 @@ struct MeetingDocument: FileDocument {
                             worker.cancel()
                         }
                         try Task.checkCancellation()
-                        modelReady = true
-                        notice = String(localized: "Local model verified and installed.")
+                        try LocalModelStore.select(target)
+                        installedModels = Set(LocalModelStore.installedProfiles)
+                        activeModel = target
+                        modelError = nil
                     } catch is CancellationError {
-                        notice = String(localized: "Model import cancelled.")
+                        modelError = String(localized: "Model import cancelled.")
                     } catch {
-                        notice = String(localized: "Model import failed. Check the file and available storage.")
+                        modelError = modelMessage(for: error)
                     }
                 }
             } catch {
-                notice = String(localized: "Model import cancelled.")
+                modelError = String(localized: "Model import cancelled.")
             }
         }
         .sheet(isPresented: $reviewOpen, onDismiss: {
@@ -203,7 +256,8 @@ struct MeetingDocument: FileDocument {
         }) {
             if let reviewDraft, let reviewDetector {
                 DeidentificationReviewView(sourceText: reviewSource, draft: reviewDraft,
-                                           detector: reviewDetector) { reviewOpen = false }
+                                           detector: reviewDetector,
+                                           modelName: activeModel.displayName) { reviewOpen = false }
             }
         }
     }
@@ -260,12 +314,13 @@ struct MeetingDocument: FileDocument {
     private func beginReview(_ transcript: Transcript) {
         guard !busy else { return }
         busy = true
-        notice = nil
+        analysisError = nil
+        let profile = activeModel
         analysisTask = Task { @MainActor in
             defer { busy = false; analysisTask = nil }
             do {
                 let worker = Task.detached(priority: .userInitiated) {
-                    try LocalModelStore.verifiedModelURL()
+                    try LocalModelStore.verifiedModelURL(for: profile)
                 }
                 let modelURL = try await withTaskCancellationHandler {
                     try await worker.value
@@ -273,7 +328,7 @@ struct MeetingDocument: FileDocument {
                     worker.cancel()
                 }
                 try Task.checkCancellation()
-                let detector = LocalLlamaEntityDetector(modelURL: modelURL)
+                let detector = LocalLlamaEntityDetector(modelURL: modelURL, profile: profile)
                 let draft = try await DeidentificationService.makeDraft(transcript: transcript,
                                                                         detector: detector)
                 try Task.checkCancellation()
@@ -282,10 +337,40 @@ struct MeetingDocument: FileDocument {
                 reviewDetector = detector
                 reviewOpen = true
             } catch is CancellationError {
-                notice = String(localized: "Local de-identification cancelled; no text was exported.")
+                analysisError = String(localized: "Local de-identification cancelled; no text was exported.")
             } catch {
-                notice = String(localized: "Local de-identification failed. Check the imported model and available storage; no text was exported.")
+                analysisError = modelMessage(for: error)
             }
         }
+    }
+
+    private func modelMessage(for error: Error) -> String {
+        if let integrity = error as? ModelIntegrityError {
+            switch integrity {
+            case .hashMismatch: return String(localized: "This GGUF differs from the approved model file. Choose the listed model and quantization.")
+            case .invalidExpectedHash: return String(localized: "The app's model verification data is invalid.")
+            }
+        }
+        if let store = error as? LocalModelStoreError, case .notInstalled = store {
+            return String(localized: "The selected model is not installed on this iPad.")
+        }
+        if let inference = error as? LocalInferenceError {
+            switch inference {
+            case .modelLoadFailed, .contextLoadFailed:
+                return String(localized: "The model could not load. Check available memory and try again; no text was exported.")
+            case .promptTooLong, .outputTooLong:
+                return String(localized: "The model could not finish this text. Try a shorter meeting; no text was exported.")
+            case .decodeFailed, .invalidUTF8:
+                return String(localized: "The model returned an unreadable result. Try again or switch models; no text was exported.")
+            }
+        }
+        if error is EntityResponseError || error is DeidentificationError {
+            return String(localized: "The model result did not pass the local safety check. Review the transcript or switch models; no text was exported.")
+        }
+        let nsError = error as NSError
+        if nsError.domain == NSCocoaErrorDomain && nsError.code == NSFileWriteOutOfSpaceError {
+            return String(localized: "There is not enough free space to import this model.")
+        }
+        return String(localized: "The local operation failed. Check the model file and free space; no text was exported.")
     }
 }

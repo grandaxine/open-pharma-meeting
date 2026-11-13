@@ -7,6 +7,7 @@ public enum IdentityRules {
         (#"(?<![\p{L}\p{N}])[\p{L}\p{N}._%+-]+@[\p{L}\p{N}.-]+\.[\p{L}]{2,}(?![\p{L}\p{N}])"#, .contact, 0),
         (#"(?<!\d)(?:\+7|8)[\s()\-]*\d{3}[\s()\-]*\d{3}[\s()\-]*\d{2}[\s()\-]*\d{2}(?!\d)"#, .contact, 0),
         (#"(?i)(?:паспорт|passport)\s*(?:№|no\.?|number)?\s*\d{4}\s*\d{6}(?!\d)"#, .document, 0),
+        (#"(?i:адрес\s+(?:врача|пациента)\s*:\s*)((?:улиц[а-яё]*|ул\.)\s+[А-ЯЁа-яё0-9\- ]{2,50},?\s*(?:дом|д\.)\s*\d+[а-яё]?)"#, .address, 1),
         (#"(?i:доктор|врач|doctor|dr\.)\s+([А-ЯЁ][а-яё]+(?:\s+[А-ЯЁ][а-яё]+)?)"#, .doctor, 1),
         (#"(?i:пациент[а-яё]*|patient)\s+([А-ЯЁ][а-яё]+(?:\s+[А-ЯЁ][а-яё]+)?)"#, .patient, 1)
     ]
@@ -34,7 +35,8 @@ public enum IdentityRules {
                 while search.length > 0 {
                     let found = source.range(of: variant, options: [.caseInsensitive], range: search)
                     guard found.location != NSNotFound else { break }
-                    if isWholeWord(found, in: source) && !isBrandContext(found.location, in: source) {
+                    if isWholeWord(found, in: source) && !isBrandContext(found.location, in: source) &&
+                        !isStreetContext(found.location, in: source) {
                         spans.append(IdentifyingSpan(startUTF16: found.location,
                                                      endUTF16: NSMaxRange(found), kind: .doctor))
                     }
@@ -59,6 +61,13 @@ public enum IdentityRules {
         let start = max(0, offset - 40)
         let prefix = text.substring(with: NSRange(location: start, length: offset - start))
         return prefix.range(of: #"(?i)(?:препарат[а-яё]*|бренд[а-яё]*|лекарств[а-яё]*|компан[а-яё]*|drug|brand|company)\s+$"#,
+                            options: .regularExpression) != nil
+    }
+
+    private static func isStreetContext(_ offset: Int, in text: NSString) -> Bool {
+        let start = max(0, offset - 30)
+        let prefix = text.substring(with: NSRange(location: start, length: offset - start))
+        return prefix.range(of: #"(?i)(?:улиц[а-яё]*|ул\.|проспект[а-яё]*|пр\.|переулок|переулке|бульвар[а-яё]*)\s+$"#,
                             options: .regularExpression) != nil
     }
 }

@@ -1,27 +1,47 @@
 import Foundation
 import PrivacyPolicyKit
 
+enum LocalModelStoreError: Error {
+    case notInstalled
+}
+
 enum LocalModelStore {
-    static let expectedSHA256 = "9465e63a22add5354d9bb4b99e90117043c7124007664907259bd16d043bb031"
-    private static let filename = "Qwen3-0.6B-Q8_0.gguf"
+    private static let activeKey = "activeLocalModelProfile"
 
-    static var installedURL: URL? {
-        guard let url = try? modelURL(), FileManager.default.fileExists(atPath: url.path) else { return nil }
+    static var activeProfile: LocalModelProfile {
+        if let saved = UserDefaults.standard.string(forKey: activeKey),
+           let profile = LocalModelProfile(rawValue: saved), installedURL(for: profile) != nil {
+            return profile
+        }
+        return installedProfiles.first ?? .qwen
+    }
+
+    static var installedProfiles: [LocalModelProfile] {
+        LocalModelProfile.allCases.filter { installedURL(for: $0) != nil }
+    }
+
+    static func installedURL(for profile: LocalModelProfile) -> URL? {
+        guard let url = try? modelURL(for: profile), FileManager.default.fileExists(atPath: url.path) else { return nil }
         return url
     }
 
-    static func verifiedModelURL() throws -> URL {
+    static func select(_ profile: LocalModelProfile) throws {
+        guard installedURL(for: profile) != nil else { throw LocalModelStoreError.notInstalled }
+        UserDefaults.standard.set(profile.id, forKey: activeKey)
+    }
+
+    static func verifiedModelURL(for profile: LocalModelProfile) throws -> URL {
         try Task.checkCancellation()
-        let url = try modelURL()
-        try ModelIntegrity.verify(url: url, expectedSHA256: expectedSHA256)
+        guard let url = installedURL(for: profile) else { throw LocalModelStoreError.notInstalled }
+        try ModelIntegrity.verify(url: url, expectedSHA256: profile.expectedSHA256)
         try Task.checkCancellation()
         return url
     }
 
-    static func importApprovedModel(from source: URL) throws {
+    static func importApprovedModel(from source: URL, as profile: LocalModelProfile) throws {
         try Task.checkCancellation()
         let directory = try modelDirectory()
-        let destination = directory.appendingPathComponent(filename)
+        let destination = directory.appendingPathComponent(profile.filename)
         let staged = directory.appendingPathComponent(UUID().uuidString + ".partial")
         let access = source.startAccessingSecurityScopedResource()
         defer { if access { source.stopAccessingSecurityScopedResource() } }
@@ -29,7 +49,7 @@ enum LocalModelStore {
         try FileManager.default.copyItem(at: source, to: staged)
         try Task.checkCancellation()
         try FileManager.default.setAttributes([.protectionKey: FileProtectionType.complete], ofItemAtPath: staged.path)
-        try ModelIntegrity.verify(url: staged, expectedSHA256: expectedSHA256)
+        try ModelIntegrity.verify(url: staged, expectedSHA256: profile.expectedSHA256)
         try Task.checkCancellation()
         if FileManager.default.fileExists(atPath: destination.path) {
             _ = try FileManager.default.replaceItemAt(destination, withItemAt: staged)
@@ -42,7 +62,9 @@ enum LocalModelStore {
         try protectedURL.setResourceValues(values)
     }
 
-    private static func modelURL() throws -> URL { try modelDirectory().appendingPathComponent(filename) }
+    private static func modelURL(for profile: LocalModelProfile) throws -> URL {
+        try modelDirectory().appendingPathComponent(profile.filename)
+    }
 
     private static func modelDirectory() throws -> URL {
         let support = try FileManager.default.url(for: .applicationSupportDirectory,

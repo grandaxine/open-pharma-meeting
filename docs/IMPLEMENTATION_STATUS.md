@@ -1,4 +1,8 @@
-# Implementation status — 2026-11-13
+# Implementation status — 2026-11-14
+
+## Selectable local text models: implementation underway
+
+On `fix/direct-address-identifiers`, Qwen and ggml-org Gemma 3 1B Q4_K_M now have separate SHA-256 pinned import slots and a persisted active selection. The UI shows model names, source links and app version; import/inference errors are classified and positioned near actions, and the review sheet keeps its error visible above the transcript. Model-specific Qwen/Gemma prompts target doctor/patient names, preserve brands and standalone street names, and use the appropriate chat framing. Deterministic rules cover an explicitly linked full personal address. Added host tests for prompt framing, name propagation and street-name preservation. The existing 0.1.7 (9) version bump was prepared during the prior TestFlight work; this task has **not** created another archive or upload. Apple Speech is unchanged. Host verification: 45 Swift tests, four protocol tests via Python 3.13, source scan and unsigned generic iOS build passed. Gemma performance, recall and license implications for any future redistribution remain device/release gates.
 
 ## Unreleased local lexicons for brand and spoken-name hints
 

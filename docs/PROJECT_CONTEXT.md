@@ -1,6 +1,10 @@
 # Project memory — Open Pharma Meeting
 
-Last updated: 2026-11-13. This file is the handoff for future sessions; no hidden conversational memory is required.
+Last updated: 2026-11-14. This file is the handoff for future sessions; no hidden conversational memory is required.
+
+## Selectable local models in development (2026-11-14)
+
+The `fix/direct-address-identifiers` worktree is adding two separately imported, SHA-256 pinned text models: Qwen3-0.6B-Q8_0 and ggml-org Gemma 3 1B Q4_K_M. The app now displays active/installed model status, source links and version, uses model-specific prompts, and moves de-identification errors next to the relevant action. Apple Speech stays the sole on-device audio recognizer. Doctor/patient identity is the required de-identification target; representative names may remain. Brands and standalone street names are preserved; linked full personal addresses are not. Host tests and an unsigned generic iOS build have passed during development, but no new TestFlight archive or iPad validation has been performed. The Gemma file is user imported and subject to its own terms; see `docs/MODEL_RUNTIME_REVIEW.md`.
 
 ## Unreleased local brand/name lexicons (2026-11-13)
 

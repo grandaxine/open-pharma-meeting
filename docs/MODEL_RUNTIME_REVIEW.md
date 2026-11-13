@@ -7,6 +7,12 @@ Status: **TestFlight trial only**. Provenance and binary checks below support an
 - Publisher: [Qwen official account](https://huggingface.co/Qwen/Qwen3-0.6B-GGUF/tree/main).
 - File: `Qwen3-0.6B-Q8_0.gguf`, approximately 639 MB; the publisher lists SHA-256 `9465e63a22add5354d9bb4b99e90117043c7124007664907259bd16d043bb031` on the [file page](https://huggingface.co/Qwen/Qwen3-0.6B-GGUF/blob/main/Qwen3-0.6B-Q8_0.gguf).
 - Declared license: Apache-2.0. Preserve the complete model license and required notices in any distribution.
+
+## Optional Gemma comparison model (2026-11-14)
+
+- Publisher/converter: [ggml-org Gemma 3 1B IT GGUF](https://huggingface.co/ggml-org/gemma-3-1b-it-GGUF), derived from Google's Gemma 3 1B instruction-tuned weights. The approved `gemma-3-1b-it-Q4_K_M.gguf` file page publishes SHA-256 `8ccc5cd1f1b3602548715ae25a66ed73fd5dc68a210412eea643eb20eb75a135` and an approximately 806 MB file.
+- [Google's Gemma terms](https://ai.google.dev/gemma/terms) apply; this is not Apache-2.0. The app links to the source and accepts a user-imported file. We do not redistribute Gemma weights or claim permission to do so without a separate terms review.
+- The selected llama.cpp runtime must be verified on iPad 9/10 with this exact Gemma GGUF and its chat template. Compilation and host tests alone do not establish memory use, speed or identity recall.
 - The official 609 MiB file was downloaded outside Git and its full SHA-256 matched the published value. Russian physician/patient identifier recall, brand preservation, iPad memory, latency, thermal behavior, and cancellation have **not** yet been established.
 
 ## Candidate runtime

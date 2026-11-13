@@ -18,6 +18,7 @@ struct DeidentificationReviewView: View {
     let sourceText: String
     let draft: AnalysisTextDraft
     let detector: LocalLlamaEntityDetector
+    let modelName: String
     let dismiss: () -> Void
 
     @State private var reviewedText: String
@@ -28,10 +29,12 @@ struct DeidentificationReviewView: View {
     @State private var error: String?
 
     init(sourceText: String, draft: AnalysisTextDraft,
-         detector: LocalLlamaEntityDetector, dismiss: @escaping () -> Void) {
+         detector: LocalLlamaEntityDetector, modelName: String,
+         dismiss: @escaping () -> Void) {
         self.sourceText = sourceText
         self.draft = draft
         self.detector = detector
+        self.modelName = modelName
         self.dismiss = dismiss
         _reviewedText = State(initialValue: draft.redactedText)
     }
@@ -43,18 +46,8 @@ struct DeidentificationReviewView: View {
                     Text("Review every identifier before export. Model output can miss names or remove a brand. Only the approved text will be exported; the original audio and transcript stay on this iPad.")
                         .font(.subheadline)
                     Text("Suggested replacements: \(draft.replacementCount)").font(.subheadline.bold())
-                    HStack(alignment: .top, spacing: 18) {
-                        VStack(alignment: .leading) {
-                            Text("Original transcript — local only").font(.headline)
-                            Text(verbatim: sourceText).textSelection(.enabled)
-                        }.frame(maxWidth: .infinity, alignment: .leading)
-                        VStack(alignment: .leading) {
-                            Text("Text proposed for export").font(.headline)
-                            TextEditor(text: $reviewedText).frame(minHeight: 320)
-                                .overlay(RoundedRectangle(cornerRadius: 8).stroke(.secondary))
-                        }.frame(maxWidth: .infinity, alignment: .leading)
-                    }
-                    if let error { Text(error).foregroundStyle(.red) }
+                    Text(String(format: NSLocalizedString("Active model: %@", comment: "Selected local model"), modelName))
+                        .font(.subheadline).foregroundStyle(.secondary)
                     Button {
                         checking = true
                         error = nil
@@ -66,8 +59,10 @@ struct DeidentificationReviewView: View {
                                 try Task.checkCancellation()
                                 document = AnalysisTextDocument(text: artifact.text)
                                 export = true
+                            } catch is CancellationError {
+                                self.error = String(localized: "Final check cancelled; no text was exported.")
                             } catch {
-                                self.error = String(localized: "Final local check failed. Review names and contact details, then try again.")
+                                self.error = reviewMessage(for: error)
                             }
                         }
                     } label: {
@@ -76,9 +71,30 @@ struct DeidentificationReviewView: View {
                     .buttonStyle(.borderedProminent)
                     .disabled(checking || reviewedText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
                     if checking { ProgressView("Checking text on this iPad…") }
+                    HStack(alignment: .top, spacing: 18) {
+                        VStack(alignment: .leading) {
+                            Text("Original transcript — local only").font(.headline)
+                            Text(verbatim: sourceText).textSelection(.enabled)
+                        }.frame(maxWidth: .infinity, alignment: .leading)
+                        VStack(alignment: .leading) {
+                            Text("Text proposed for export").font(.headline)
+                            TextEditor(text: $reviewedText).frame(minHeight: 320)
+                                .disabled(checking)
+                                .overlay(RoundedRectangle(cornerRadius: 8).stroke(.secondary))
+                        }.frame(maxWidth: .infinity, alignment: .leading)
+                    }
                 }.padding(24)
             }
             .navigationTitle("Review de-identified text")
+            .safeAreaInset(edge: .top) {
+                if let error {
+                    Text(error)
+                        .foregroundStyle(.red)
+                        .padding(12)
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                        .background(.regularMaterial)
+                }
+            }
             .toolbar { Button("Close") { approvalTask?.cancel(); dismiss() } }
             .onDisappear { approvalTask?.cancel() }
             .fileExporter(isPresented: $export, document: document, contentType: .plainText,
@@ -86,5 +102,20 @@ struct DeidentificationReviewView: View {
                 if case .failure = result { error = String(localized: "Text export failed.") }
             }
         }
+    }
+
+    private func reviewMessage(for error: Error) -> String {
+        if let failure = error as? DeidentificationError {
+            switch failure {
+            case .residualIdentifier: return String(localized: "A doctor or patient identifier is still present. Edit the proposed text before export.")
+            case .emptyText: return String(localized: "The export text is empty.")
+            case .invalidSpan, .conflictingSpans:
+                return String(localized: "The model returned conflicting text spans. Switch models or retry; no text was exported.")
+            }
+        }
+        if error is EntityResponseError || error is LocalInferenceError {
+            return String(localized: "The model could not complete the final check. Switch models or retry; no text was exported.")
+        }
+        return String(localized: "Final local check failed. Review names and contact details, then try again.")
     }
 }

@@ -32,7 +32,10 @@ public enum EntityResponseParser {
             while search.length > 0 {
                 let found = text.range(of: quote, options: [], range: search)
                 guard found.location != NSNotFound else { break }
-                if isWholeTerm(found, in: text) && !isBrandMention(at: found.location, in: text, kind: kind) {
+                if isWholeTerm(found, in: text) &&
+                    !isBrandMention(at: found.location, in: text, kind: kind) &&
+                    !isStreetMention(at: found.location, in: text, quote: quote, kind: kind) &&
+                    !isStandaloneStreetQuote(quote, kind: kind) {
                     spans.append(IdentifyingSpan(startUTF16: found.location,
                                                  endUTF16: NSMaxRange(found), kind: kind))
                 }
@@ -51,6 +54,26 @@ public enum EntityResponseParser {
         let prefix = text.substring(with: NSRange(location: start, length: offset - start))
         return prefix.range(of: #"(?i)(?:препарат[а-яё]*|бренд[а-яё]*|лекарств[а-яё]*|компан[а-яё]*|drug|brand|company)\s+$"#,
                             options: .regularExpression) != nil
+    }
+
+    private static func isStreetMention(at offset: Int, in text: NSString, quote: String, kind: IdentityKind) -> Bool {
+        guard [.doctor, .patient, .person, .address].contains(kind) else { return false }
+        if kind == .address && hasHouseNumber(quote) { return false }
+        let start = max(0, offset - 30)
+        let prefix = text.substring(with: NSRange(location: start, length: offset - start))
+        return prefix.range(of: #"(?i)(?:улиц[а-яё]*|ул\.|проспект[а-яё]*|пр\.|переулок|переулке|бульвар[а-яё]*)\s+$"#,
+                            options: .regularExpression) != nil
+    }
+
+    private static func isStandaloneStreetQuote(_ quote: String, kind: IdentityKind) -> Bool {
+        guard kind == .address,
+              quote.range(of: #"(?i)(?:улиц[а-яё]*|ул\.|проспект[а-яё]*|пр\.|переулок|переулке|бульвар[а-яё]*)"#,
+                          options: .regularExpression) != nil else { return false }
+        return !hasHouseNumber(quote)
+    }
+
+    private static func hasHouseNumber(_ text: String) -> Bool {
+        text.range(of: #"(?i)(?:дом|д\.)\s*\d+"#, options: .regularExpression) != nil
     }
 
     private static func isWholeTerm(_ range: NSRange, in text: NSString) -> Bool {
