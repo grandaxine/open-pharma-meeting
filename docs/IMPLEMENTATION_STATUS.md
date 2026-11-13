@@ -1,8 +1,8 @@
 # Implementation status — 2026-11-13
 
-## Local text de-identification proposed
+## Local text de-identification in progress
 
-The user approved the hybrid design: the iPad records and transcribes locally, removes identifiers of physicians and patients locally, and sends only reviewed text to a company-approved cloud LLM. Drug names, competitor brands, medical terms, and non-identifying visit content must remain for analysis of messages, objections, visit stages, next-visit preparation, and possible regulatory risks with human review. The design is in `docs/superpowers/specs/2026-11-13-local-text-deidentification-design.md`; the implementation plan is in `docs/superpowers/plans/2026-11-13-local-text-deidentification.md` pending user review. There is no implementation, model dependency, or external upload yet; the current JSON export remains raw. Hardware/model feasibility checks are the first gate.
+The user approved the hybrid design and implementation plan in `docs/superpowers/`. The isolated `feat/local-deidentification` worktree now has a pure Swift core: validated identity spans, narrow contact/document rules, consistent placeholders, an allowlisted text artifact, a second local scan before approval, and streaming model-file SHA-256. Synthetic host tests pass (26 total), as do four protocol tests, the public-source scan, and an unsigned generic iOS build. No model dependency or app export flow has been added. The candidate Qwen/llama.cpp review is incomplete; iPad 9 is unavailable, so the required two-device offline benchmark gate blocks model integration and release. The existing JSON export remains raw and must not be used as an analysis-safe artifact. No new TestFlight archive was made.
 
 ## TestFlight 0.1.4 (6): opening speech restored in user retest
 

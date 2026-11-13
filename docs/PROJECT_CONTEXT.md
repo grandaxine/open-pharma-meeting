@@ -2,9 +2,9 @@
 
 Last updated: 2026-11-13. This file is the handoff for future sessions; no hidden conversational memory is required.
 
-## Local text de-identification proposal (2026-11-13)
+## Local text de-identification in progress (2026-11-13)
 
-The user wants the iPad to record audio, transcribe it and locally remove only information that could identify a physician or patient. Only reviewed text, never audio, goes to a company-approved cloud LLM for visit summaries, brands/competitors, objections, stages, next-visit preparation, and human-reviewed regulatory risk flags. Drug names, brands, medical terms, and non-identifying facts must be preserved. The hybrid design in `docs/superpowers/specs/2026-11-13-local-text-deidentification-design.md` is approved; an implementation plan is in `docs/superpowers/plans/2026-11-13-local-text-deidentification.md` pending user review. No implementation or model dependency has been added. The present raw JSON export is not an analysis-safe artifact.
+The iPad must record and transcribe locally, remove physician/patient identity cues locally, and allow only reviewed text to leave for company-approved cloud analysis. Drug names, competitor brands, medical terms, objections, claims, and other non-identifying visit facts remain. The approved design and plan are under `docs/superpowers/`. In an isolated `feat/local-deidentification` worktree, `PrivacyPolicyKit` now has a host-tested redaction core and allowlisted text artifact (26 Swift tests, 4 protocol tests, source scan, unsigned iOS build passed). No model/runtime dependency or app export flow is integrated. `docs/MODEL_RUNTIME_REVIEW.md` records candidate provenance and unresolved audit items; `docs/VALIDATION.md` records that iPad 9 and the two-device offline benchmark are still pending. The raw JSON export is not an analysis-safe artifact. No new TestFlight archive was made.
 
 ## TestFlight 0.1.4 (6): opening speech restored in user retest (2026-11-13)
 
