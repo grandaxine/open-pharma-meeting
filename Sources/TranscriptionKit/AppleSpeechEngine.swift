@@ -54,11 +54,12 @@ import MeetingDataKit
     }
 }
 
-/// Main-actor completion gate serializes timeout, cancellation and Speech callbacks.
-@MainActor private final class RecognitionOperation {
+/// Collect final utterances until Speech reports that the whole request finished.
+@MainActor private final class RecognitionOperation: NSObject, SFSpeechRecognitionTaskDelegate {
     private var continuation: CheckedContinuation<[TranscriptSegment], Error>?
     private var task: SFSpeechRecognitionTask?
     private var timeout: Task<Void, Never>?
+    private var results = RecognitionResultAccumulator()
     func run(recognizer: SFSpeechRecognizer, url: URL) async throws -> [TranscriptSegment] {
         try await withTaskCancellationHandler {
             try Task.checkCancellation()
@@ -67,15 +68,7 @@ import MeetingDataKit
                 let request = SFSpeechURLRecognitionRequest(url: url)
                 request.requiresOnDeviceRecognition = true
                 request.shouldReportPartialResults = false
-                task = recognizer.recognitionTask(with: request) { result, error in
-                    let values = result?.isFinal == true ? result?.bestTranscription.segments.map {
-                        TranscriptSegment(start: $0.timestamp, end: $0.timestamp + $0.duration, text: $0.substring)
-                    } : nil
-                    Task { @MainActor in
-                        if let values { self.finish(.success(values)) }
-                        else if let error { self.finish(.failure(error)) }
-                    }
-                }
+                task = recognizer.recognitionTask(with: request, delegate: self)
                 timeout = Task { @MainActor in
                     do { try await Task.sleep(nanoseconds: 90_000_000_000) } catch { return }
                     self.finish(.failure(ContractError.invalid("On-device speech timed out; audio preserved")))
@@ -83,9 +76,24 @@ import MeetingDataKit
             }
         } onCancel: { Task { @MainActor in self.finish(.failure(CancellationError())) } }
     }
+    nonisolated func speechRecognitionTask(_ task: SFSpeechRecognitionTask, didFinishRecognition result: SFSpeechRecognitionResult) {
+        let segments = result.bestTranscription.segments.map {
+            TranscriptSegment(start: $0.timestamp, end: $0.timestamp + $0.duration, text: $0.substring)
+        }
+        DispatchQueue.main.async { self.results.appendFinal(segments) }
+    }
+    nonisolated func speechRecognitionTask(_ task: SFSpeechRecognitionTask, didFinishSuccessfully successfully: Bool) {
+        let error = task.error
+        DispatchQueue.main.async {
+            if successfully { self.finish(.success(self.results.segments)) }
+            else { self.finish(.failure(error ?? ContractError.invalid("Speech recognition failed"))) }
+        }
+    }
     private func finish(_ result: Result<[TranscriptSegment], Error>) {
         guard let c = continuation else { return }
-        continuation = nil; timeout?.cancel(); timeout = nil; task?.cancel(); task = nil
+        continuation = nil; timeout?.cancel(); timeout = nil
+        if case .failure = result { task?.cancel() }
+        task = nil
         c.resume(with: result)
     }
 }

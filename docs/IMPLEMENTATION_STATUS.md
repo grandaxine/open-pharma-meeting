@@ -1,5 +1,13 @@
 # Implementation status — 2026-11-13
 
+## TestFlight 0.1.4 (6) uploaded; speech fix pending device verification
+
+A new 19.941s iPad recording has one intact CAF and first recognized words at 10.8s, excluding capture chunk boundaries as the cause. Its SHA-256 and early audio signal were verified, and a local AVAudioFile slice preserved all frames and the opening waveform. The prior recognition operation canceled on its first final result. It now accumulates final utterances through `SFSpeechRecognitionTaskDelegate` and waits for the whole task to finish; two new tests cover retained and deduplicated words. Eighteen Swift tests, four protocol tests, the public-source scan and unsigned iOS build passed. Xcode Organizer created a signed 0.1.4 (6) archive and reported **App upload complete** for App Store Connect. Processing/tester availability and physical recovery of opening words remain unverified; existing audio is preserved for retranscription.
+
+## Opening transcription gap to diagnose
+
+Two separate iPad exports first show recognized words at 30.96s and 25.65s, despite having first audio chunks of about 60s that also contain later recognized words. The JSON includes both chunk metadata entries and transcript segments from both chunks; it does not include audio bytes. Source code retains all completed `.caf` files per meeting with no two-chunk cap; only temporary speech slices are deleted. After Developer Mode was enabled, both original first CAF files were found and copied from the iPad. Their SHA-256 hashes match JSON and signal levels are substantial from the opening seconds. The user supplied manual transcripts of audible speech starting around 1s in both recordings; this content is absent from JSON. The gap arises in recognition output, before export; the precise Apple Speech cause remains unknown. Local 40-second listening copies are in `/private/tmp/opms-audio-diagnosis/`, outside the repository. Resolve recognition loss before text cleanup or brand analysis.
+
 ## TestFlight release 0.1.3 (5)
 
 Both marketing version and build number were increased and the generated Xcode project updated. Verification passed: 16 Swift tests, 4 protocol tests, public-source scan, plist lint, and unsigned generic iOS build. Xcode Organizer created a signed 0.1.3 (5) archive and showed **App upload complete**. The archive's `Info.plist` has `ITSAppUsesNonExemptEncryption = false`. App Store Connect processing, tester availability and physical-device validation of the updated UI remain unverified. Remove Xcode's temporary signing team from generated source before commit.
