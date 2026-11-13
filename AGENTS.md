@@ -14,6 +14,7 @@ Read `docs/PROJECT_CONTEXT.md` and `docs/IMPLEMENTATION_STATUS.md` before starti
 
 - Public repository: `https://github.com/grandaxine/open-pharma-meeting`, owner `grandaxine`, default branch `main`.
 - Six Swift modules have native static-library Xcode targets and a matching Swift package. Regenerate project with `python3 scripts/generate_project.py` after adding/removing Swift files. Regenerate protocol with `python3 scripts/generate_protocol.py` when its generator changes; commit generator and outputs together.
+- Before every new TestFlight archive, increase `MARKETING_VERSION` and `CURRENT_PROJECT_VERSION` in `scripts/generate_project.py`, regenerate `OpenPharmaMeeting.xcodeproj`, and verify both values in the archive. Never reuse a previously uploaded version/build pair.
 - Run `swift test`, `python3 scripts/test_protocol.py`, `python3 scripts/check_public_source.py` and the generic iOS build from README. Python protocol tests require `requirements-dev.txt`.
 - Successful compilation/CI is not physical-device validation. Keep outstanding iPad 9/10 tests and enterprise functionality explicit.
 - Some Codex environments deny `.git` writes and CLI networking/keychain even when the user's Terminal works. Use the GitHub connector for read verification when available; report actual blockers. Never claim a commit/push from local edits alone or access tokens through chat.

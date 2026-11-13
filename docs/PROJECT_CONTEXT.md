@@ -1,6 +1,14 @@
 # Project memory — Open Pharma Meeting
 
-Last updated: 2026-11-10. This file is the handoff for future sessions; no hidden conversational memory is required.
+Last updated: 2026-11-13. This file is the handoff for future sessions; no hidden conversational memory is required.
+
+## TestFlight upload (2026-11-13)
+
+Xcode Organizer created and uploaded Open Pharma Meeting 0.1.1 (3) with the capture startup fix; it shows **Uploaded to Apple** for build 3. `MARKETING_VERSION` and `CURRENT_PROJECT_VERSION` are now 0.1.1 and 3 in the project generator and generated Xcode project. AGENTS.md and CONTRIBUTING.md require both to increase before every new TestFlight archive. App Store Connect processing, tester availability and physical-device retest are not verified. The one used iPad (A16) simulator's erase failed with a macOS permission error; its approximately 1.5 GiB data remains. Xcode's temporary team selection was removed from the generated project after upload. Check remote `main` separately before claiming source publication; an app upload is not a Git push.
+
+## iPad capture startup failure (2026-11-13)
+
+Two iPad 10 screenshots showed `NSCocoaErrorDomain Code=4` for a missing new `.caf` file when recording started. `NativeAudioRecorder.beginChunk()` set file protection immediately after constructing `AVAudioRecorder`, before the audio file existed. The recorder now calls `prepareToRecord()` before setting `completeUnlessOpen` protection, then starts capture. Apple documents that preparation creates the file. Local verification: 12 Swift tests, 4 protocol tests, public-source scan and unsigned generic iOS build passed. Physical-device retest is pending; the two interrupted meetings with missing CAF files contain no recoverable audio. The fix was included in the uploaded 0.1.1 (3) archive.
 
 ## TestFlight upload (2026-11-10)
 
@@ -16,7 +24,7 @@ The user supplied a detailed specification, approved proceeding after design/pla
 
 - Public repository/owner: https://github.com/grandaxine/open-pharma-meeting (`grandaxine`).
 - Initial commit: `777338b6e2105b58a02a42db575c970d1931b9ef` — `feat: initialize open pharma meeting platform`.
-- Current published `main` as verified by `git ls-remote` on 2026-11-10: `0c09216bcbff6ac1c3ea02e3229316a715d9a658` — `fix: add iPad app icons for TestFlight`. This was committed directly to `main` and pushed; there was no PR merge. It includes the icon fix, TestFlight status documentation and `/Tmp/` ignore rule. The local working tree was clean after that push, before this documentation update.
+- Last verified published `main` before the 0.1.1 changes, checked by `git ls-remote` on 2026-11-10: `0c09216bcbff6ac1c3ea02e3229316a715d9a658` — `fix: add iPad app icons for TestFlight`. This was committed directly to `main` and pushed; there was no PR merge. It includes the icon fix, TestFlight status documentation and `/Tmp/` ignore rule. Check the remote for later commits.
 - GitHub Actions run: https://github.com/grandaxine/open-pharma-meeting/actions/runs/42345635063 — **completed / success**, confirmed through GitHub connector after the user pushed.
 - CI covers 12 XCTest cases, native-export JSON Schema validation, 4 Python protocol tests, candidate source scan, generated artifact reproducibility and unsigned generic iOS build. No simulator UI or hardware execution was demonstrated.
 - Local development used Xcode 26.5/Swift 6.3.2. The initial published tree had 66 files; starter archive/prototype/audio files were absent. Check Git status and the remote branch before claiming subsequent documentation edits published.

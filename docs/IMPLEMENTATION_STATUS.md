@@ -1,4 +1,12 @@
-# Implementation status — 2026-11-10
+# Implementation status — 2026-11-13
+
+## TestFlight build 0.1.1 (3)
+
+Xcode Organizer showed **Uploaded to Apple** on 2026-11-13 for a signed 0.1.1 (3) archive containing the capture startup fix. App Store Connect processing, tester availability and physical-device retest are pending. Both the marketing version and build number were increased in the project generator and generated Xcode project; AGENTS.md and CONTRIBUTING.md now require this for every new TestFlight archive. Erasing the used iPad simulator failed because macOS denied access to its data; no simulator data was removed.
+
+## iPad recording startup fix
+
+On 2026-11-13, two iPad 10 screenshots showed recording startup failing with a missing `.caf` file. Root cause: file protection was applied before `AVAudioRecorder` created the file. `beginChunk()` now calls `prepareToRecord()` first. Local verification passed: 12 Swift tests, 4 protocol tests, public-source scan and unsigned generic iOS build. Device retest is pending; check GitHub separately for source publication. The affected interrupted records have no audio to recover.
 
 ## TestFlight upload
 
@@ -10,7 +18,7 @@ Current state supersedes pre-publication observations in the historical design/p
 
 Repository: https://github.com/grandaxine/open-pharma-meeting — public, owner `grandaxine`, branch `main`.
 
-Current published `main`: `0c09216bcbff6ac1c3ea02e3229316a715d9a658` (`fix: add iPad app icons for TestFlight`), verified with `git ls-remote` on 2026-11-10. It was committed directly to `main` and pushed; no PR merge occurred. The local working tree was clean after that push, before this documentation update.
+Last verified published `main` before the 0.1.1 changes: `0c09216bcbff6ac1c3ea02e3229316a715d9a658` (`fix: add iPad app icons for TestFlight`), checked with `git ls-remote` on 2026-11-10. Check the remote for later commits.
 
 Initial commit: `777338b6e2105b58a02a42db575c970d1931b9ef` — `feat: initialize open pharma meeting platform`.
 

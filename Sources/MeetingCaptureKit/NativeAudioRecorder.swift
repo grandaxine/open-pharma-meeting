@@ -64,6 +64,7 @@ import MeetingDataKit
         m.recording.pendingFilename = filename; meeting = m; try persist()
         let url = try repository.audioURL(m.id, filename: filename)
         let audio = try AVAudioRecorder(url: url, settings: [AVFormatIDKey: kAudioFormatLinearPCM, AVSampleRateKey: 16000.0, AVNumberOfChannelsKey: 1, AVLinearPCMBitDepthKey: 16, AVLinearPCMIsFloatKey: false, AVLinearPCMIsBigEndianKey: false])
+        guard audio.prepareToRecord() else { throw ContractError.invalid("Audio recording could not be prepared") }
         try FileManager.default.setAttributes([.protectionKey: FileProtectionType.completeUnlessOpen], ofItemAtPath: url.path)
         audio.delegate = self
         guard audio.record() else { throw ContractError.invalid("Audio recording failed") }
