@@ -22,6 +22,7 @@ struct DeidentificationReviewView: View {
 
     @State private var reviewedText: String
     @State private var checking = false
+    @State private var approvalTask: Task<Void, Never>?
     @State private var export = false
     @State private var document = AnalysisTextDocument(text: "")
     @State private var error: String?
@@ -57,11 +58,12 @@ struct DeidentificationReviewView: View {
                     Button {
                         checking = true
                         error = nil
-                        Task { @MainActor in
-                            defer { checking = false }
+                        approvalTask = Task { @MainActor in
+                            defer { checking = false; approvalTask = nil }
                             do {
                                 let artifact = try await DeidentificationService.approve(
                                     draft: draft, reviewedText: reviewedText, detector: detector)
+                                try Task.checkCancellation()
                                 document = AnalysisTextDocument(text: artifact.text)
                                 export = true
                             } catch {
@@ -77,7 +79,8 @@ struct DeidentificationReviewView: View {
                 }.padding(24)
             }
             .navigationTitle("Review de-identified text")
-            .toolbar { Button("Close", action: dismiss) }
+            .toolbar { Button("Close") { approvalTask?.cancel(); dismiss() } }
+            .onDisappear { approvalTask?.cancel() }
             .fileExporter(isPresented: $export, document: document, contentType: .plainText,
                           defaultFilename: "meeting-analysis-text") { result in
                 if case .failure = result { error = String(localized: "Text export failed.") }

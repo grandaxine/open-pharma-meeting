@@ -44,6 +44,10 @@
 "Close" = "Закрыть";
 "Final local check failed. Review names and contact details, then try again." = "Итоговая локальная проверка не пройдена. Проверьте имена и контакты и повторите попытку.";
 "Text export failed." = "Не удалось экспортировать текст.";
+"Importing and verifying model on this iPad…" = "Импорт и проверка модели на этом iPad…";
+"Cancel model import" = "Отменить импорт модели";
+"Model import cancelled." = "Импорт модели отменён.";
+"Model import failed. Check the file and available storage." = "Не удалось импортировать модель. Проверьте файл и свободное место.";
 "Delete local meeting" = "Удалить встречу с iPad";
 "Status: " = "Статус: ";
 "Participant consent" = "Согласие участников";

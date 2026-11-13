@@ -30,6 +30,7 @@ struct MeetingDocument: FileDocument {
     @State private var importing = false
     @State private var modelImporting = false
     @State private var modelReady = LocalModelStore.installedURL != nil
+    @State private var modelImportTask: Task<Void, Never>?
     @State private var reviewOpen = false
     @State private var reviewDraft: AnalysisTextDraft?
     @State private var reviewDetector: LocalLlamaEntityDetector?
@@ -62,6 +63,10 @@ struct MeetingDocument: FileDocument {
                     }.disabled(active || busy)
                     Button(modelReady ? "Replace local model…" : "Import local model…") { modelImporting = true }
                         .disabled(active || busy)
+                    if modelImportTask != nil {
+                        ProgressView("Importing and verifying model on this iPad…")
+                        Button("Cancel model import") { modelImportTask?.cancel() }
+                    }
                     Label {
                         Text("Speech recognition runs only on this iPad. Turn on Siri in Settings → Siri (or Apple Intelligence & Siri), and enable Dictation in Settings → General → Keyboard. If your organization restricts these settings, contact IT. Audio remains saved if recognition fails.")
                     } icon: {
@@ -164,13 +169,38 @@ struct MeetingDocument: FileDocument {
             }
         }
         .fileImporter(isPresented: $modelImporting, allowedContentTypes: [.item]) { result in
-            perform {
-                try LocalModelStore.importApprovedModel(from: result.get())
-                modelReady = true
-                notice = String(localized: "Local model verified and installed.")
+            do {
+                let source = try result.get()
+                busy = true
+                modelImportTask = Task { @MainActor in
+                    defer { busy = false; modelImportTask = nil }
+                    let worker = Task.detached(priority: .userInitiated) {
+                        try LocalModelStore.importApprovedModel(from: source)
+                    }
+                    do {
+                        try await withTaskCancellationHandler {
+                            try await worker.value
+                        } onCancel: {
+                            worker.cancel()
+                        }
+                        try Task.checkCancellation()
+                        modelReady = true
+                        notice = String(localized: "Local model verified and installed.")
+                    } catch is CancellationError {
+                        notice = String(localized: "Model import cancelled.")
+                    } catch {
+                        notice = String(localized: "Model import failed. Check the file and available storage.")
+                    }
+                }
+            } catch {
+                notice = String(localized: "Model import cancelled.")
             }
         }
-        .sheet(isPresented: $reviewOpen) {
+        .sheet(isPresented: $reviewOpen, onDismiss: {
+            reviewDraft = nil
+            reviewDetector = nil
+            reviewSource = ""
+        }) {
             if let reviewDraft, let reviewDetector {
                 DeidentificationReviewView(sourceText: reviewSource, draft: reviewDraft,
                                            detector: reviewDetector) { reviewOpen = false }
@@ -234,7 +264,15 @@ struct MeetingDocument: FileDocument {
         analysisTask = Task { @MainActor in
             defer { busy = false; analysisTask = nil }
             do {
-                let modelURL = try LocalModelStore.verifiedModelURL()
+                let worker = Task.detached(priority: .userInitiated) {
+                    try LocalModelStore.verifiedModelURL()
+                }
+                let modelURL = try await withTaskCancellationHandler {
+                    try await worker.value
+                } onCancel: {
+                    worker.cancel()
+                }
+                try Task.checkCancellation()
                 let detector = LocalLlamaEntityDetector(modelURL: modelURL)
                 let draft = try await DeidentificationService.makeDraft(transcript: transcript,
                                                                         detector: detector)

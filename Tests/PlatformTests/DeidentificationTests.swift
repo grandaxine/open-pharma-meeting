@@ -144,4 +144,13 @@ final class DeidentificationTests: XCTestCase {
         XCTAssertEqual(spans.count, 2)
         XCTAssertEqual(spans.map(\.kind), [.doctor, .doctor])
     }
+
+    func testModelResponseKeepsSameNamedDrug() throws {
+        let source = "Доктор Петров обсудил препарат Петров. Позже Петров ответил Петровскому."
+        let output = "{\"entities\":[{\"quote\":\"Петров\",\"kind\":\"doctor\"}]}"
+        let spans = try EntityResponseParser.parse(output, in: source)
+        XCTAssertEqual(spans.count, 2)
+        let draft = try IdentityRules.detect(in: source)
+        XCTAssertEqual(draft.count, 1)
+    }
 }

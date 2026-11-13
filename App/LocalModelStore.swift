@@ -11,12 +11,15 @@ enum LocalModelStore {
     }
 
     static func verifiedModelURL() throws -> URL {
+        try Task.checkCancellation()
         let url = try modelURL()
         try ModelIntegrity.verify(url: url, expectedSHA256: expectedSHA256)
+        try Task.checkCancellation()
         return url
     }
 
     static func importApprovedModel(from source: URL) throws {
+        try Task.checkCancellation()
         let directory = try modelDirectory()
         let destination = directory.appendingPathComponent(filename)
         let staged = directory.appendingPathComponent(UUID().uuidString + ".partial")
@@ -24,8 +27,10 @@ enum LocalModelStore {
         defer { if access { source.stopAccessingSecurityScopedResource() } }
         defer { try? FileManager.default.removeItem(at: staged) }
         try FileManager.default.copyItem(at: source, to: staged)
+        try Task.checkCancellation()
         try FileManager.default.setAttributes([.protectionKey: FileProtectionType.complete], ofItemAtPath: staged.path)
         try ModelIntegrity.verify(url: staged, expectedSHA256: expectedSHA256)
+        try Task.checkCancellation()
         if FileManager.default.fileExists(atPath: destination.path) {
             _ = try FileManager.default.replaceItemAt(destination, withItemAt: staged)
         } else {

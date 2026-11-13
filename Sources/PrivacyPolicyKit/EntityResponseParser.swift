@@ -32,8 +32,10 @@ public enum EntityResponseParser {
             while search.length > 0 {
                 let found = text.range(of: quote, options: [], range: search)
                 guard found.location != NSNotFound else { break }
-                spans.append(IdentifyingSpan(startUTF16: found.location,
-                                             endUTF16: NSMaxRange(found), kind: kind))
+                if isWholeTerm(found, in: text) && !isBrandMention(at: found.location, in: text, kind: kind) {
+                    spans.append(IdentifyingSpan(startUTF16: found.location,
+                                                 endUTF16: NSMaxRange(found), kind: kind))
+                }
                 matched = true
                 let next = NSMaxRange(found)
                 search = NSRange(location: next, length: text.length - next)
@@ -41,5 +43,22 @@ public enum EntityResponseParser {
             guard matched else { throw EntityResponseError.unmatchedQuote }
         }
         return try IdentitySpans.validated(spans, in: source)
+    }
+
+    private static func isBrandMention(at offset: Int, in text: NSString, kind: IdentityKind) -> Bool {
+        guard [.doctor, .patient, .person].contains(kind) else { return false }
+        let start = max(0, offset - 40)
+        let prefix = text.substring(with: NSRange(location: start, length: offset - start))
+        return prefix.range(of: #"(?i)(?:препарат[а-яё]*|бренд[а-яё]*|лекарств[а-яё]*|компан[а-яё]*|drug|brand|company)\s+$"#,
+                            options: .regularExpression) != nil
+    }
+
+    private static func isWholeTerm(_ range: NSRange, in text: NSString) -> Bool {
+        func isWordUnit(_ offset: Int) -> Bool {
+            guard offset >= 0, offset < text.length,
+                  let scalar = UnicodeScalar(Int(text.character(at: offset))) else { return false }
+            return CharacterSet.alphanumerics.contains(scalar)
+        }
+        return !isWordUnit(range.location - 1) && !isWordUnit(NSMaxRange(range))
     }
 }
