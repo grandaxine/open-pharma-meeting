@@ -3,6 +3,7 @@ import UniformTypeIdentifiers
 import MeetingDataKit
 import MeetingCaptureKit
 import TranscriptionKit
+import PrivacyPolicyKit
 
 @main struct OpenPharmaMeetingApp: App {
     var body: some Scene { WindowGroup { MeetingView() } }
@@ -27,6 +28,13 @@ struct MeetingDocument: FileDocument {
     @State private var transcription: Task<Void, Never>?
     @State private var export = false
     @State private var importing = false
+    @State private var modelImporting = false
+    @State private var modelReady = LocalModelStore.installedURL != nil
+    @State private var reviewOpen = false
+    @State private var reviewDraft: AnalysisTextDraft?
+    @State private var reviewDetector: LocalLlamaEntityDetector?
+    @State private var reviewSource = ""
+    @State private var analysisTask: Task<Void, Never>?
     @State private var document = MeetingDocument()
     private var selected: Meeting? { meetings.first { $0.id == selection } }
     private var active: Bool { recorder.meeting != nil }
@@ -52,6 +60,8 @@ struct MeetingDocument: FileDocument {
                         Text("Русский").tag("ru-RU")
                         Text("Deutsch").tag("de-DE")
                     }.disabled(active || busy)
+                    Button(modelReady ? "Replace local model…" : "Import local model…") { modelImporting = true }
+                        .disabled(active || busy)
                     Label {
                         Text("Speech recognition runs only on this iPad. Turn on Siri in Settings → Siri (or Apple Intelligence & Siri), and enable Dictation in Settings → General → Keyboard. If your organization restricts these settings, contact IT. Audio remains saved if recognition fails.")
                     } icon: {
@@ -96,8 +106,22 @@ struct MeetingDocument: FileDocument {
                         .disabled(active || busy || m.recording.chunks.isEmpty)
                         if busy { ProgressView(value: progress); Button("Cancel transcription") { transcription?.cancel() } }
                         Text("Export discloses the transcript and metadata to your chosen destination, outside this app's protection. Audio is not included.").font(.footnote)
-                        Button("Export meeting JSON…") { perform { document = MeetingDocument(data: try MeetingCodec.encode(m)); export = true } }.disabled(active || busy)
+                        Button("Export raw meeting JSON…") { perform { document = MeetingDocument(data: try MeetingCodec.encode(m)); export = true } }.disabled(active || busy)
                         if let t = m.transcript {
+                            Button {
+                                beginReview(t)
+                            } label: {
+                                Label("De-identify text on this iPad…", systemImage: "person.crop.circle.badge.checkmark")
+                            }
+                            .buttonStyle(.borderedProminent)
+                            .disabled(active || busy || !modelReady)
+                            if busy && analysisTask != nil {
+                                Button("Cancel de-identification") { analysisTask?.cancel() }
+                            }
+                            if !modelReady {
+                                Text("Import the approved Qwen3-0.6B-Q8_0.gguf model to enable local de-identification.")
+                                    .font(.footnote)
+                            }
                             let paragraphs = t.paragraphs()
                             VStack(alignment: .leading, spacing: 16) {
                                 ForEach(paragraphs.indices, id: \.self) { index in
@@ -137,6 +161,19 @@ struct MeetingDocument: FileDocument {
                 guard let repository else { return }
                 let m = try repository.importMeeting(Data(contentsOf: url)); selection = m.id; try reload()
                 notice = String(localized: "Metadata imported. Referenced audio files are not part of a JSON import.")
+            }
+        }
+        .fileImporter(isPresented: $modelImporting, allowedContentTypes: [.item]) { result in
+            perform {
+                try LocalModelStore.importApprovedModel(from: result.get())
+                modelReady = true
+                notice = String(localized: "Local model verified and installed.")
+            }
+        }
+        .sheet(isPresented: $reviewOpen) {
+            if let reviewDraft, let reviewDetector {
+                DeidentificationReviewView(sourceText: reviewSource, draft: reviewDraft,
+                                           detector: reviewDetector) { reviewOpen = false }
             }
         }
     }
@@ -187,6 +224,30 @@ struct MeetingDocument: FileDocument {
                 var updated = try repository.load(m.id); updated.transcript = t; try repository.save(updated); try reload()
             } catch is CancellationError { notice = String(localized: "Transcription cancelled; prior data retained.") }
             catch { notice = transcriptionMessage(for: error) }
+        }
+    }
+
+    private func beginReview(_ transcript: Transcript) {
+        guard !busy else { return }
+        busy = true
+        notice = nil
+        analysisTask = Task { @MainActor in
+            defer { busy = false; analysisTask = nil }
+            do {
+                let modelURL = try LocalModelStore.verifiedModelURL()
+                let detector = LocalLlamaEntityDetector(modelURL: modelURL)
+                let draft = try await DeidentificationService.makeDraft(transcript: transcript,
+                                                                        detector: detector)
+                try Task.checkCancellation()
+                reviewSource = transcript.text
+                reviewDraft = draft
+                reviewDetector = detector
+                reviewOpen = true
+            } catch is CancellationError {
+                notice = String(localized: "Local de-identification cancelled; no text was exported.")
+            } catch {
+                notice = String(localized: "Local de-identification failed. Check the imported model and available storage; no text was exported.")
+            }
         }
     }
 }

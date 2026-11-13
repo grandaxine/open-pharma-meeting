@@ -2,9 +2,9 @@
 
 Last updated: 2026-11-13. This file is the handoff for future sessions; no hidden conversational memory is required.
 
-## Local text de-identification in progress (2026-11-13)
+## TestFlight 0.1.5 (7): local text trial (2026-11-13)
 
-The iPad must record and transcribe locally, remove physician/patient identity cues locally, and allow only reviewed text to leave for company-approved cloud analysis. Drug names, competitor brands, medical terms, objections, claims, and other non-identifying visit facts remain. The approved design and plan are under `docs/superpowers/`. In an isolated `feat/local-deidentification` worktree, `PrivacyPolicyKit` now has a host-tested redaction core and allowlisted text artifact (26 Swift tests, 4 protocol tests, source scan, unsigned iOS build passed). No model/runtime dependency or app export flow is integrated. `docs/MODEL_RUNTIME_REVIEW.md` records candidate provenance and unresolved audit items; `docs/VALIDATION.md` records that iPad 9 and the two-device offline benchmark are still pending. The raw JSON export is not an analysis-safe artifact. No new TestFlight archive was made.
+The iPad records and transcribes locally and can propose removal of physician/patient identity cues using an imported Qwen3-0.6B-Q8_0 GGUF and source-built llama.cpp for iOS 16.0. A review sheet permits edits; only a second locally checked, explicitly approved `.txt` file is offered for analysis export. Drug names, competitor brands, medical terms, objections, claims, and other non-identifying visit facts should remain. The weights are not bundled or in Git. The raw JSON export remains separate and is not an analysis-safe artifact; no cloud connector is enabled. The approved design/plan and model provenance are in `docs/superpowers/` and `docs/MODEL_RUNTIME_REVIEW.md`. The user chose TestFlight before multi-device validation. Xcode Organizer showed **Uploaded to Apple** for 0.1.5 (7), with a missing llama dSYM warning. Host checks passed (29 Swift tests, 4 protocol tests, source scan, plist lint, generic build); App Store Connect processing and physical model quality/performance are pending. A synthetic Mac run gave bad model spans that the app rejects, so treat this as an experimental trial, not a privacy or regulatory assurance.
 
 ## TestFlight 0.1.4 (6): opening speech restored in user retest (2026-11-13)
 

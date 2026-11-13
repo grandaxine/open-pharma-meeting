@@ -1,8 +1,8 @@
 # Validation record and remaining work
 
-## Local text de-identification feasibility — pending
+## Local text de-identification feasibility — TestFlight trial pending
 
-On 2026-11-13, only a physical iPad 10/A14 running iPadOS 27.2.1 was connected. The required iPad 9/A13 was not available. No model weights were imported and no offline inference, 1,000-word latency, memory, thermal, cancellation, or brand-preservation measurement has been made. The candidate model/runtime review is in `docs/MODEL_RUNTIME_REVIEW.md`. Do not enable analysis export or claim device support until both-device evidence passes the plan gate.
+On 2026-11-13, only a physical iPad 10/A14 running iPadOS 27.2.1 was connected. The required iPad 9/A13 was not available. The official model file passed SHA-256 verification on the Mac; a synthetic CPU inference exposed overbroad and invented spans. No iPad model import, offline inference, 1,000-word latency, memory, thermal, cancellation, or brand-preservation measurement has been made. The user requested TestFlight now and multi-device testing later. The trial keeps export behind model parsing, human review and a second local scan; do not claim real-world de-identification quality or production readiness until both-device evidence passes.
 
 Development environment: macOS, Xcode 26.5, Swift 6.3.2. Actual current command results are recorded in docs/IMPLEMENTATION_STATUS.md at handoff. CI definitions are not evidence that GitHub CI has run.
 

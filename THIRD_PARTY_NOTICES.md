@@ -4,7 +4,10 @@ Preferred license: Apache-2.0 for original project code. Its permissive terms an
 
 ## Runtime
 
-No third-party runtime packages are adopted. Swift standard library/Foundation, SwiftUI, AVFoundation, Speech, CryptoKit and OS services are used under Apple's applicable SDK/platform terms; Apple framework source is not copied or relicensed. Signing/distribution remains subject to platform terms.
+- `llama.cpp` `b12248`, source commit `3837bf0bc02ea5d08f8ee3585fc8c7784a81bce8`, MIT. `ThirdParty/llama.framework` is built from that source for iOS 16.0 with app/common/tools/tests/server/multimodal disabled, Metal enabled, OpenSSL disabled, and static components combined into one dynamic framework. The MIT text is in `ThirdParty/llama-LICENSE.txt`. Build provenance, binary hash, and review limits are in `docs/MODEL_RUNTIME_REVIEW.md`.
+- Qwen3-0.6B-Q8_0 GGUF is imported by the user through Files and is **not** distributed in the app or repository. Its publisher declares Apache-2.0; the exact file hash is pinned in `App/LocalModelStore.swift`.
+
+Swift standard library/Foundation, SwiftUI, AVFoundation, Speech, CryptoKit and OS services are used under Apple's applicable SDK/platform terms; Apple framework source is not copied or relicensed. Signing/distribution remains subject to platform terms.
 
 ## Development only
 

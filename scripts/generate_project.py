@@ -12,6 +12,10 @@ products={}; files=[]
 assets_ref=obj('App/Assets.xcassets', 'isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = "App/Assets.xcassets"; sourceTree = SOURCE_ROOT;')
 files.append(assets_ref)
 assets_build=obj('App/Assets.xcassets build', f'isa = PBXBuildFile; fileRef = {assets_ref};')
+llama_ref=obj('ThirdParty/llama.framework', 'isa = PBXFileReference; lastKnownFileType = wrapper.framework; path = "ThirdParty/llama.framework"; sourceTree = SOURCE_ROOT;')
+files.append(llama_ref)
+llama_link=obj('ThirdParty/llama.framework link', f'isa = PBXBuildFile; fileRef = {llama_ref};')
+llama_embed=obj('ThirdParty/llama.framework embed', f'isa = PBXBuildFile; fileRef = {llama_ref}; settings = {{ ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }};')
 localized_builds=[]
 for name in ['Localizable.strings','InfoPlist.strings']:
     localized_refs=[]
@@ -36,21 +40,23 @@ for name in allnames:
         proxy=obj(name+dep+'proxy',f'isa = PBXContainerItemProxy; containerPortal = {uid("project")}; proxyType = 1; remoteGlobalIDString = {uid(dep+"target")}; remoteInfo = {dep};')
         dependencies.append(obj(name+dep+'dep',f'isa = PBXTargetDependency; target = {uid(dep+"target")}; targetProxy = {proxy};'))
         links.append(obj(name+dep+'link',f'isa = PBXBuildFile; fileRef = {products[dep]};'))
+    if app: links.append(llama_link)
     sources=obj(name+'sources',f'isa = PBXSourcesBuildPhase; buildActionMask = 2147483647; files = ({",".join(builds)},); runOnlyForDeploymentPostprocessing = 0;')
     frameworks=obj(name+'frameworks',f'isa = PBXFrameworksBuildPhase; buildActionMask = 2147483647; files = ({(",".join(links)+",") if links else ""}); runOnlyForDeploymentPostprocessing = 0;')
     resources=obj(name+'resources',f'isa = PBXResourcesBuildPhase; buildActionMask = 2147483647; files = ({",".join([assets_build]+localized_builds)},); runOnlyForDeploymentPostprocessing = 0;') if app else None
+    embed=obj(name+'embed',f'isa = PBXCopyFilesBuildPhase; buildActionMask = 2147483647; dstPath = ""; dstSubfolderSpec = 10; files = ({llama_embed},); name = "Embed Frameworks"; runOnlyForDeploymentPostprocessing = 0;') if app else None
     configs=[]
     for c in ['Debug','Release']:
-        extra='GENERATE_INFOPLIST_FILE = NO; INFOPLIST_FILE = App/Info.plist; TARGETED_DEVICE_FAMILY = 2; ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;' if app else 'DEFINES_MODULE = YES; SKIP_INSTALL = YES;'
+        extra='GENERATE_INFOPLIST_FILE = NO; INFOPLIST_FILE = App/Info.plist; TARGETED_DEVICE_FAMILY = 2; ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon; FRAMEWORK_SEARCH_PATHS = ("$(inherited)", "$(PROJECT_DIR)/ThirdParty"); LD_RUNPATH_SEARCH_PATHS = ("$(inherited)", "@executable_path/Frameworks");' if app else 'DEFINES_MODULE = YES; SKIP_INSTALL = YES;'
         configs.append(obj(name+c,f'''isa = XCBuildConfiguration; name = {c}; buildSettings = {{
         SDKROOT = iphoneos; IPHONEOS_DEPLOYMENT_TARGET = 16.0; SWIFT_VERSION = 5.0;
         PRODUCT_NAME = "$(TARGET_NAME)"; PRODUCT_BUNDLE_IDENTIFIER = org.openpharmameeting.{name};
-        ALWAYS_SEARCH_USER_PATHS = NO; CODE_SIGN_STYLE = Automatic; CURRENT_PROJECT_VERSION = 6; MARKETING_VERSION = 0.1.4;
+        ALWAYS_SEARCH_USER_PATHS = NO; CODE_SIGN_STYLE = Automatic; CURRENT_PROJECT_VERSION = 7; MARKETING_VERSION = 0.1.5;
         SWIFT_OPTIMIZATION_LEVEL = "{'-Onone' if c=='Debug' else '-O'}"; {extra}
         SUPPORTS_MACCATALYST = NO; ENABLE_USER_SCRIPT_SANDBOXING = YES;
         }};'''))
     conf=obj(name+'configs',f'isa = XCConfigurationList; buildConfigurations = ({",".join(configs)},); defaultConfigurationIsVisible = 0; defaultConfigurationName = Release;')
-    obj(name+'target',f'''isa = PBXNativeTarget; name = {name}; productName = {name}; productReference = {products[name]}; productType = "com.apple.product-type.{"application" if app else "library.static"}"; buildConfigurationList = {conf}; buildPhases = ({sources},{frameworks}{(','+resources) if resources else ''},); buildRules = (); dependencies = ({(",".join(dependencies)+",") if dependencies else ""});''')
+    obj(name+'target',f'''isa = PBXNativeTarget; name = {name}; productName = {name}; productReference = {products[name]}; productType = "com.apple.product-type.{"application" if app else "library.static"}"; buildConfigurationList = {conf}; buildPhases = ({sources},{frameworks}{(','+resources) if resources else ''}{(','+embed) if embed else ''},); buildRules = (); dependencies = ({(",".join(dependencies)+",") if dependencies else ""});''')
 productsGroup=obj('products',f'isa = PBXGroup; children = ({",".join(products.values())},); name = Products; sourceTree = "<group>";')
 group=obj('group',f'isa = PBXGroup; children = ({",".join(files)},{productsGroup},); sourceTree = "<group>";')
 pconfigs=[]

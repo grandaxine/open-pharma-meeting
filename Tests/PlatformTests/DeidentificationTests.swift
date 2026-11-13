@@ -39,6 +39,14 @@ final class DeidentificationTests: XCTestCase {
         XCTAssertEqual(draft.redactedText, source.text)
     }
 
+    func testContextualNamesDoNotMaskSameNamedBrand() async throws {
+        let source = transcript("Доктор Петров обсудил препарат Петров с пациенткой Анной Сидоровой.")
+        let draft = try await DeidentificationService.makeDraft(
+            transcript: source, detector: PhraseDetector(phrase: "нет такого имени", kind: .doctor))
+        XCTAssertEqual(draft.redactedText,
+                       "Доктор [DOCTOR_1] обсудил препарат Петров с пациенткой [PATIENT_1].")
+    }
+
     func testRepeatedNamesAndOverlappingSpans() async throws {
         let source = transcript("Врач Петров сказал, что Петров вернётся.")
         let draft = try await DeidentificationService.makeDraft(transcript: source, detector: PhraseDetector(phrase: "Петров", kind: .doctor))
@@ -121,5 +129,19 @@ final class DeidentificationTests: XCTestCase {
         try Data("wrong model".utf8).write(to: url)
         defer { try? FileManager.default.removeItem(at: url) }
         XCTAssertThrowsError(try ModelIntegrity.verify(url: url, expectedSHA256: String(repeating: "0", count: 64)))
+    }
+
+    func testModelResponseRejectsMalformedAndUnknownIdentity() {
+        XCTAssertThrowsError(try EntityResponseParser.parse("not JSON", in: "Врач Петров"))
+        XCTAssertThrowsError(try EntityResponseParser.parse("{\"entities\":[{\"quote\":\"Сидоров\",\"kind\":\"doctor\"}]}", in: "Врач Петров"))
+        XCTAssertThrowsError(try EntityResponseParser.parse("{\"entities\":[{\"quote\":\"Петров\",\"kind\":\"brand\"}]}", in: "Врач Петров"))
+        XCTAssertThrowsError(try EntityResponseParser.parse("{\"entities\":[{\"quote\":\"Доктор Петров обсудил препарат Конкурент.\",\"kind\":\"doctor\"}]}", in: "Доктор Петров обсудил препарат Конкурент."))
+    }
+
+    func testModelResponseMasksAllRepeatedQuotes() throws {
+        let output = "{\"entities\":[{\"quote\":\"Петров\",\"kind\":\"doctor\"}]}"
+        let spans = try EntityResponseParser.parse(output, in: "Врач Петров; Петров ответил")
+        XCTAssertEqual(spans.count, 2)
+        XCTAssertEqual(spans.map(\.kind), [.doctor, .doctor])
     }
 }
