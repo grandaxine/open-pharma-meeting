@@ -53,6 +53,23 @@ public struct Transcript: Codable, Equatable, Sendable {
         self.meetingID = meetingID; self.language = language; self.segments = segments
     }
     public var text: String { segments.map(\.text).joined(separator: " ") }
+    public func paragraphs(pauseThreshold: Double = 0.8) -> [String] {
+        var result: [String] = []
+        var words: [String] = []
+        var previousEnd: Double?
+        for segment in segments {
+            let word = segment.text.trimmingCharacters(in: .whitespacesAndNewlines)
+            guard !word.isEmpty else { continue }
+            if let previousEnd, segment.start - previousEnd >= pauseThreshold, !words.isEmpty {
+                result.append(words.joined(separator: " "))
+                words.removeAll(keepingCapacity: true)
+            }
+            words.append(word)
+            previousEnd = segment.end
+        }
+        if !words.isEmpty { result.append(words.joined(separator: " ")) }
+        return result
+    }
 }
 public struct AudioChunk: Codable, Equatable, Sendable {
     public var filename: String

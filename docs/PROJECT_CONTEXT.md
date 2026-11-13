@@ -2,6 +2,22 @@
 
 Last updated: 2026-11-13. This file is the handoff for future sessions; no hidden conversational memory is required.
 
+## TestFlight 0.1.3 (5) uploaded (2026-11-13)
+
+After the user's request, both version fields were increased in `scripts/generate_project.py` and the Xcode project was regenerated. Local verification passed: 16 Swift tests, 4 Python protocol tests, public-source scan, plist lint, and unsigned generic iOS build. Xcode Organizer created a signed 0.1.3 (5) archive and reported **App upload complete** for App Store Connect. The archived app contains `ITSAppUsesNonExemptEncryption = false`; the export action is above the paragraph-style transcript and the Siri settings guidance is included. App Store Connect processing, tester availability, and physical-device validation of the new layout are not yet verified. The temporary Xcode signing team selection must not be committed to the generated project.
+
+## Transcript reading layout (2026-11-13)
+
+The user confirmed on-device Russian transcription now succeeds after enabling Siri. Their exported 75-second sample has 83 word segments and four inter-word pauses of at least 0.8 seconds. The meeting detail now places the JSON export action before the transcript and displays words as readable paragraphs split at pauses of 0.8 seconds or more. This is timing-based paragraphing, not speaker diarization; raw segment timing and JSON remain unchanged. This change is included in 0.1.3 (5).
+
+## Siri settings guidance (2026-11-13)
+
+The user confirmed Dictation was enabled but Siri was disabled on the iPad, and enabled Siri manually. The app already requests Speech authorization at transcription time. There is no supported app API to enable Siri or deep-link to its system settings; `UIApplication.openSettingsURLString` opens only the app's own settings. Updated English/Russian in-app guidance to lead with the Siri settings path, then Dictation, with an IT fallback for managed devices. This guidance is included in 0.1.3 (5); the user confirmed transcription works after enabling Siri.
+
+## Export compliance declaration for next build (2026-11-13)
+
+`App/Info.plist` sets `ITSAppUsesNonExemptEncryption` to `NO`, verified in the uploaded 0.1.3 (5) archive. Current app code uses CryptoKit SHA-256 integrity hashes and Apple OS file protection; it does not implement custom encryption. Apple says `NO` applies when an app uses no encryption or only encryption exempt from export documentation. Reassess the declaration if future dependencies or cryptographic features change.
+
 ## iPad speech restriction and localized UI (2026-11-13)
 
 The user confirmed that TestFlight 0.1.1 (3) recorded and finalized an approximately 8-second, one-chunk meeting on the supervised iPad 10. Speech recognition then returned `kLSRErrorDomain` code 201, which Apple defines as Siri or Dictation disabled. This is a device setting or possible organization policy restriction; the app cannot override it without changing its on-device-only architecture. `SpeechFailure` now classifies codes 201 and 102, and the UI shows actionable guidance while preserving the audio. The app now includes Russian/English localization, defaults the new meeting recognition language to `ru-RU`, makes the offline/MDM notice clearer, and uses a prominent transcription button. Xcode Organizer showed **App upload complete** and **Uploaded to Apple** for signed 0.1.2 (4) on 2026-11-13; App Store Connect processing, tester availability and physical-device speech success remain unverified. The user removed the simulator data personally.

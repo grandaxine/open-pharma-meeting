@@ -53,7 +53,7 @@ struct MeetingDocument: FileDocument {
                         Text("Deutsch").tag("de-DE")
                     }.disabled(active || busy)
                     Label {
-                        Text("Speech recognition runs only on this iPad. Siri or Dictation must be allowed and the language assets installed. If your organization blocks them, contact IT. Audio remains saved if recognition fails.")
+                        Text("Speech recognition runs only on this iPad. Turn on Siri in Settings → Siri (or Apple Intelligence & Siri), and enable Dictation in Settings → General → Keyboard. If your organization restricts these settings, contact IT. Audio remains saved if recognition fails.")
                     } icon: {
                         Image(systemName: "info.circle.fill")
                     }
@@ -95,13 +95,17 @@ struct MeetingDocument: FileDocument {
                         .controlSize(.large)
                         .disabled(active || busy || m.recording.chunks.isEmpty)
                         if busy { ProgressView(value: progress); Button("Cancel transcription") { transcription?.cancel() } }
-                        if let t = m.transcript {
-                            ForEach(t.segments) { s in
-                                HStack(alignment: .top) { Text(String(format: "%.1fs", s.start)).monospacedDigit().foregroundStyle(.secondary); Text(s.text).textSelection(.enabled) }
-                            }
-                        }
                         Text("Export discloses the transcript and metadata to your chosen destination, outside this app's protection. Audio is not included.").font(.footnote)
                         Button("Export meeting JSON…") { perform { document = MeetingDocument(data: try MeetingCodec.encode(m)); export = true } }.disabled(active || busy)
+                        if let t = m.transcript {
+                            let paragraphs = t.paragraphs()
+                            VStack(alignment: .leading, spacing: 16) {
+                                ForEach(paragraphs.indices, id: \.self) { index in
+                                    Text(verbatim: paragraphs[index]).textSelection(.enabled)
+                                }
+                            }
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                        }
                         Button("Delete local meeting", role: .destructive) { perform { try repository?.delete(m.id); selection = nil; try reload() } }.disabled(active || busy)
                     }
                     if let notice { Text(notice).foregroundStyle(.orange).accessibilityLabel(String(localized: "Status: ") + notice) }
@@ -149,7 +153,7 @@ struct MeetingDocument: FileDocument {
     private func transcriptionMessage(for error: Error) -> String {
         switch SpeechFailure.classify(error) {
         case .siriOrDictationDisabled:
-            return String(localized: "Siri or Dictation is disabled. Check Settings → General → Keyboard → Enable Dictation and Siri settings. If restricted by your organization, contact IT. Audio remains saved.")
+            return String(localized: "Speech service is disabled. Turn on Siri in Settings → Siri (or Apple Intelligence & Siri). Check Dictation in Settings → General → Keyboard. If a setting is unavailable, contact IT. Audio remains saved.")
         case .assetsMissing:
             return String(localized: "The on-device speech package for this language is missing. Install the language assets in iPad settings or choose another supported language. Audio remains saved.")
         case nil:

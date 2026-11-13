@@ -46,6 +46,15 @@ final class ContractsTests: XCTestCase {
         meeting.transcript = Transcript(meetingID: meeting.id, language: "en-US", segments: [.init(start: 3, end: 2, text: "invalid")])
         XCTAssertThrowsError(try MeetingCodec.encode(meeting))
     }
+    func testTranscriptParagraphsPreserveWordsAcrossLongPauses() {
+        let transcript = Transcript(meetingID: UUID(), language: "ru-RU", segments: [
+            .init(start: 0, end: 0.2, text: "  Добрый "),
+            .init(start: 0.4, end: 0.7, text: "день."),
+            .init(start: 1.5, end: 1.7, text: "Спасибо")
+        ])
+        XCTAssertEqual(transcript.paragraphs(), ["Добрый день.", "Спасибо"])
+        XCTAssertEqual(transcript.segments.count, 3)
+    }
     func testChunkOffsetsAndBoundaries() throws {
         XCTAssertEqual(try ChunkPlan.ranges(duration: 91).map(\.start), [0, 45, 90])
         XCTAssertEqual(try ChunkPlan.ranges(duration: 91).map(\.duration), [45, 45, 1])

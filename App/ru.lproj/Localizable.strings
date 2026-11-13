@@ -7,7 +7,7 @@
 "English (US)" = "Английский (США)";
 "Русский" = "Русский";
 "Deutsch" = "Немецкий";
-"Speech recognition runs only on this iPad. Siri or Dictation must be allowed and the language assets installed. If your organization blocks them, contact IT. Audio remains saved if recognition fails." = "Распознавание выполняется только на этом iPad. Для него нужны разрешённые Siri или Диктовка и установленный языковой пакет. Если их ограничила организация, обратитесь в ИТ. При ошибке аудиозапись сохранится.";
+"Speech recognition runs only on this iPad. Turn on Siri in Settings → Siri (or Apple Intelligence & Siri), and enable Dictation in Settings → General → Keyboard. If your organization restricts these settings, contact IT. Audio remains saved if recognition fails." = "Распознавание выполняется только на этом iPad. Включите Siri в разделе «Настройки → Siri» (или «Apple Intelligence и Siri»), а Диктовку — в разделе «Настройки → Основные → Клавиатура». Если настройки ограничены организацией, обратитесь в ИТ. При ошибке аудиозапись сохранится.";
 "Paused" = "Пауза";
 "Recording" = "Запись";
 "Ready" = "Готово";
@@ -35,5 +35,5 @@
 "Metadata imported. Referenced audio files are not part of a JSON import." = "Сведения о встрече импортированы. Указанные аудиофайлы не входят в JSON.";
 "Some records could not be read. They remain on disk; no data was silently deleted." = "Часть записей не удалось прочитать. Они остались на диске; данные не удалялись.";
 "Transcription cancelled; prior data retained." = "Распознавание отменено; прежние данные сохранены.";
-"Siri or Dictation is disabled. Check Settings → General → Keyboard → Enable Dictation and Siri settings. If restricted by your organization, contact IT. Audio remains saved." = "Siri или Диктовка отключены. Проверьте Настройки → Основные → Клавиатура → Включить диктовку, а также настройки Siri. Если функция ограничена организацией, обратитесь в ИТ. Аудиозапись сохранена.";
+"Speech service is disabled. Turn on Siri in Settings → Siri (or Apple Intelligence & Siri). Check Dictation in Settings → General → Keyboard. If a setting is unavailable, contact IT. Audio remains saved." = "Служба распознавания отключена. Включите Siri: «Настройки → Siri» (или «Apple Intelligence и Siri»). Проверьте Диктовку: «Настройки → Основные → Клавиатура». Если настройка недоступна, обратитесь в ИТ. Аудиозапись сохранена.";
 "The on-device speech package for this language is missing. Install the language assets in iPad settings or choose another supported language. Audio remains saved." = "На iPad нет пакета распознавания для этого языка. Установите языковые данные в настройках iPad или выберите другой поддерживаемый язык. Аудиозапись сохранена.";

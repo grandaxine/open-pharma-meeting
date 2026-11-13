@@ -1,5 +1,21 @@
 # Implementation status — 2026-11-13
 
+## TestFlight release 0.1.3 (5)
+
+Both marketing version and build number were increased and the generated Xcode project updated. Verification passed: 16 Swift tests, 4 protocol tests, public-source scan, plist lint, and unsigned generic iOS build. Xcode Organizer created a signed 0.1.3 (5) archive and showed **App upload complete**. The archive's `Info.plist` has `ITSAppUsesNonExemptEncryption = false`. App Store Connect processing, tester availability and physical-device validation of the updated UI remain unverified. Remove Xcode's temporary signing team from generated source before commit.
+
+## Transcript reading layout in 0.1.3 (5)
+
+The user supplied an iPad screenshot and JSON showing successful Russian on-device recognition after enabling Siri: 75 seconds, two audio chunks, 83 word segments. Moved the export explanation/action above the transcript and added paragraph presentation at pauses of at least 0.8 seconds; raw JSON segments and timing are unchanged.
+
+## Siri settings guidance in 0.1.3 (5)
+
+After confirming that Dictation was enabled but Siri was off on the iPad, updated English/Russian UI guidance to point directly to Siri settings and then Dictation. The app already requests Speech authorization; iPadOS does not provide an app API to enable Siri or open its system settings directly. The user confirmed recognition works after enabling Siri.
+
+## Export compliance metadata in 0.1.3 (5)
+
+Added `ITSAppUsesNonExemptEncryption = NO` to the app's explicit `Info.plist`. Current code uses CryptoKit SHA-256 for integrity and Apple OS file protection, with no custom encryption. The uploaded archive contains this declaration. Recheck it if cryptography or dependencies change.
+
 ## iPad speech restriction and release 0.1.2 (4)
 
 The user confirmed that TestFlight 0.1.1 (3) recorded and finalized an approximately 8-second, one-chunk meeting on iPad 10. Transcription returned `kLSRErrorDomain` code 201: Apple Speech reports Siri or Dictation disabled. The app cannot change device or MDM restrictions. The new `SpeechFailure` classifier and localized UI give actionable guidance for code 201 and missing assets (102), default recognition to Russian, and make the offline notice and transcription button more visible. Russian and English localization resources are packaged in signed 0.1.2 (4); Xcode Organizer showed **App upload complete** and **Uploaded to Apple** on 2026-11-13. App Store Connect processing, tester availability and speech success on the managed iPad remain unverified. The user removed the simulator data.
