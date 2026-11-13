@@ -2,7 +2,7 @@
 
 ## Local text de-identification proposed
 
-The user chose text-only external analysis with all de-identification performed on the iPad. A draft hybrid design lives in `docs/superpowers/specs/2026-11-13-local-text-deidentification-design.md`; it has no implementation, model dependency, or external upload yet. The current JSON export remains raw and must not be treated as an approved analysis artifact. The design awaits user review and device/model feasibility checks.
+The user clarified that the iPad records and transcribes locally, removes identifiers of physicians and patients locally, and sends only reviewed text to a company-approved cloud LLM. Drug names, competitor brands, medical terms, and non-identifying visit content must remain for analysis of messages, objections, visit stages, next-visit preparation, and possible regulatory risks with human review. The revised hybrid design is in `docs/superpowers/specs/2026-11-13-local-text-deidentification-design.md`. There is no implementation, model dependency, or external upload yet; the current JSON export remains raw. The design awaits user review and hardware/model feasibility checks.
 
 ## TestFlight 0.1.4 (6): opening speech restored in user retest
 
