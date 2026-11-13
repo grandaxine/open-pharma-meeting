@@ -2,6 +2,10 @@
 
 Last updated: 2026-11-13. This file is the handoff for future sessions; no hidden conversational memory is required.
 
+## Unreleased local brand/name lexicons (2026-11-13)
+
+On `fix/direct-address-identifiers`, `BrandLexicon` contains all 28 user-provided brand rows as Latin names plus provisional Russian phonetic aliases. `NameLexicon` contains 24 common given names, 12 formal/colloquial patronymic mappings and three spoken full-name groups (including `Мариванна`, `Евгенийпетрович`, `Василийолегыч`). The app adds only aliases found in the current text window to its local model prompt; deterministic greeting rules link spoken variants, while known brands are never a blanket exemption from masking a person's name. This uses no external name list or network service. The change passes 38 Swift tests, 4 protocol tests, source scan and generic iOS build. Validate pronunciations, product provenance and false positives with real ASR before release; no new TestFlight archive has been made for these changes.
+
 ## Post-0.1.6 iPad feedback: missed doctor address (2026-11-13)
 
 The iPad 10 review screen proposed only two replacements for a synthetic conversation and left a colloquial doctor address visible twice in export text. A read-only copy of the latest JSON in `/private/tmp/opms-deid-diagnosis/` confirms both occurrences in the 69-segment transcript; its one audio chunk remains on the iPad. Branch `fix/direct-address-identifiers` adds a local greeting-name rule, repeated whole-word matching, drug/brand-context exemption, and a final scan that rejects manual reintroduction. Two new tests pass, along with all 32 Swift tests, 4 protocol tests, source scan and generic iOS build. The fix is **not in TestFlight yet**. A versioned, locally bundled name/brand lexicon is a possible next step, but must preserve company and competitor mentions and handle name/brand collisions; no third-party word list has been added. Model recall and privacy adequacy remain unproven; never assume 0.1.6 output is safe to share without inspection.

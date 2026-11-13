@@ -76,7 +76,9 @@ enum IdentitySpans {
         for span in spans {
             let range = NSRange(location: span.startUTF16, length: span.endUTF16 - span.startUTF16)
             let original = source.substring(with: range)
-            let key = "\(span.kind.rawValue):\(original.folding(options: [.caseInsensitive, .diacriticInsensitive], locale: nil))"
+            let normalized = NameLexicon.canonicalKey(for: original) ??
+                original.folding(options: [.caseInsensitive, .diacriticInsensitive], locale: nil)
+            let key = "\(span.kind.rawValue):\(normalized)"
             let replacement: String
             if let existing = aliases[key] {
                 replacement = existing

@@ -176,4 +176,71 @@ final class DeidentificationTests: XCTestCase {
         XCTAssertEqual(draft.redactedText,
                        "Здравствуйте [DOCTOR_1]. Обсудим препарат Петров, затем [DOCTOR_1] ответит.")
     }
+
+    func testBrandLexiconContainsEverySuppliedBrandWithRussianPronunciation() {
+        let expected: [String: String] = [
+            "Entresto": "Энтресто", "Cosentyx": "Косентикс", "Kisqali": "Кискали",
+            "Kesimpta": "Кесимпта", "Tafinlar + Mekinist": "Тафинлар", "Jakavi": "Джакави",
+            "Pluvicto": "Плувикто", "Ilaris": "Иларис", "Xolair": "Ксолар",
+            "Promacta / Revolade": "Промакта", "Scemblix": "Скембликс",
+            "Zolgensma": "Золгенсма", "Sandostatin": "Сандостатин", "Leqvio": "Леквио",
+            "Tasigna": "Тасигна", "Lutathera": "Лутатера", "Exforge": "Эксфорж",
+            "Lucentis": "Луцентис", "Diovan": "Диован", "Fabhalta": "Фабхалта",
+            "Rhapsido": "Рапсидо", "Vanrafia": "Ванрафия", "Itvisma": "Итвисма",
+            "Aimovig": "Аймовиг", "Gilenya": "Гиления", "Glivec / Gleevec": "Гливек",
+            "Afinitor / Votubia": "Афинитор", "Beovu": "Беову"
+        ]
+        XCTAssertEqual(BrandLexicon.entries.count, expected.count)
+        for entry in BrandLexicon.entries {
+            XCTAssertTrue(entry.aliases.contains(expected[entry.canonical] ?? ""), entry.canonical)
+        }
+        XCTAssertTrue(BrandLexicon.entries.first { $0.canonical == "Tafinlar + Mekinist" }?.aliases.contains("Мекинист") == true)
+        XCTAssertTrue(BrandLexicon.entries.first { $0.canonical == "Promacta / Revolade" }?.aliases.contains("Револейд") == true)
+        XCTAssertTrue(BrandLexicon.entries.first { $0.canonical == "Afinitor / Votubia" }?.aliases.contains("Вотубия") == true)
+    }
+
+    func testBrandLexiconMatchesWholeTermsWithoutTreatingThemAsNames() async throws {
+        let source = "Доктор Петров обсудил Кискали и Револейд, но Кискалиев не упоминал."
+        XCTAssertEqual(Set(BrandLexicon.mentionedAliases(in: source)), ["Кискали", "Револейд"])
+        let draft = try await DeidentificationService.makeDraft(
+            transcript: transcript(source),
+            detector: PhraseDetector(phrase: "Петров", kind: .doctor))
+        XCTAssertTrue(draft.redactedText.contains("Кискали и Револейд"))
+        XCTAssertFalse(draft.redactedText.contains("Доктор Петров"))
+    }
+
+    func testSpokenNameLexiconRecognizesJoinedAndColloquialPatronymics() {
+        let forms = Set(NameLexicon.mentionedForms(in:
+            "Здравствуйте, Марьиванна. Евгенийпетрович встретил Василия Олегыча и Василийолегыч ответил."))
+        XCTAssertTrue(forms.contains("Марьиванна"))
+        XCTAssertTrue(forms.contains("Евгенийпетрович"))
+        XCTAssertTrue(forms.contains("Василийолегыч"))
+        XCTAssertTrue(NameLexicon.mentionedForms(in: "Марьиванн, подскажите").contains("Марьиванн"))
+        XCTAssertFalse(NameLexicon.mentionedForms(in: "Кискали и Скембликс").contains("Кискали"))
+    }
+
+    func testGreetingMasksNamePatronymicAcrossSpokenVariants() async throws {
+        let source = transcript("Здравствуйте Василий Олегович. Василийолегыч, обсудим Кискали.")
+        let draft = try await DeidentificationService.makeDraft(
+            transcript: source, detector: PhraseDetector(phrase: "нет имени", kind: .doctor))
+        XCTAssertEqual(draft.redactedText,
+                       "Здравствуйте [DOCTOR_1]. [DOCTOR_1], обсудим Кискали.")
+    }
+
+    func testCommonPatronymicAliasesKeepOneIdentity() async throws {
+        let source = transcript("Добрый день Сергей Сергеевич. Сергейсергеич обсудил препарат Энтресто.")
+        let draft = try await DeidentificationService.makeDraft(
+            transcript: source, detector: PhraseDetector(phrase: "нет имени", kind: .doctor))
+        XCTAssertEqual(draft.redactedText,
+                       "Добрый день [DOCTOR_1]. [DOCTOR_1] обсудил препарат Энтресто.")
+    }
+
+    func testKnownBrandCanStillBeANameWithExplicitDoctorCue() throws {
+        let source = "Доктор Кискали обсудил препарат Кискали."
+        let spans = try EntityResponseParser.parse(
+            "{\"entities\":[{\"quote\":\"Кискали\",\"kind\":\"doctor\"}]}", in: source)
+        XCTAssertEqual(spans.count, 1)
+        XCTAssertEqual((source as NSString).substring(with: NSRange(
+            location: spans[0].startUTF16, length: spans[0].endUTF16 - spans[0].startUTF16)), "Кискали")
+    }
 }

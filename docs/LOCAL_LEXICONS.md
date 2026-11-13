@@ -1,0 +1,7 @@
+# Local Lexicon Notes
+
+The brand seed in `brand-seed-2026-11-13.csv` comes from the user's list supplied on 2026-11-13. The Russian forms are approximate speech spellings drafted for local transcription matching; they are **not verified official product names**. The INN, area and category columns preserve the supplied snapshot for later human verification and are not used to infer approved indications or claims. Runtime aliases live in `Sources/PrivacyPolicyKit/BrandLexicon.swift`.
+
+`NameLexicon.swift` is a small, locally authored seed. It includes common given names, paired and joined name–patronymic forms, and selected colloquial patronymics. Its pattern choices are informed by [Gramota.ru's account of patronymic forms](https://gramota.ru/biblioteka/slovari/slovar-russkih-imyon/ob-otchestvakh) and [orthography guidance](https://gramota.ru/biblioteka/spravochniki/pravila-russkoy-orfografii-i-punktuatsii/pravopisanie-bezudarnykh-glasnykh); no external name database was copied. The seed is incomplete and should be evaluated against consented, locally held test transcripts.
+
+Both lists provide **candidates**, not unconditional decisions. Only terms present in the current transcript window enter the local model prompt. A listed brand can still be a person's name in context; a listed name can also occur in a product or medical term. The review and final local scan remain required before export. Test recall, false masking, word boundaries, case endings and ASR mistakes before release.
