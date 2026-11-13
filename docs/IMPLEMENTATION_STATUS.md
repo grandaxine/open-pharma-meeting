@@ -1,5 +1,9 @@
 # Implementation status — 2026-11-14
 
+## Source publication
+
+The selectable-model changes, brand/name lexicons and TestFlight 0.1.8 (10) release source were fast-forward merged and pushed to public `main`. The verified remote `main` head immediately after that push was `43163d6d68c3177726ef5953e9c93b89e2c84928`. This confirms source publication, not completion of App Store Connect processing or iPad validation.
+
 ## TestFlight 0.1.8 (10): upload succeeded
 
 The model-switch branch received a version/build bump to 0.1.8 (10), and the Xcode project was regenerated. Verification passed: 45 Swift tests, four protocol tests, public-source scan (0 findings), unsigned generic iOS build and a signed Release archive. The archive contains the correct version/build and `ITSAppUsesNonExemptEncryption = false`; a llama dSYM with matching UUID was included. Xcode's App Store Connect upload reported **Upload succeeded** and **Uploaded package is processing** at 00:36 Moscow time on 2026-11-14. Processing and TestFlight tester availability are pending. No physical Gemma or multi-iPad validation has occurred. The next TestFlight archive must use a new marketing version and build number.

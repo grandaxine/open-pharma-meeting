@@ -2,6 +2,10 @@
 
 Last updated: 2026-11-14. This file is the handoff for future sessions; no hidden conversational memory is required.
 
+## Published main (2026-11-14)
+
+The selectable-model implementation and TestFlight 0.1.8 (10) release source were fast-forward merged and pushed to `main`. GitHub `main` and `fix/direct-address-identifiers` both pointed to `43163d6d68c3177726ef5953e9c93b89e2c84928` immediately after the push. The app upload is separate from source publication; TestFlight processing and device validation remain pending.
+
 ## TestFlight 0.1.8 (10): selectable local models uploaded (2026-11-14)
 
 After increasing both version fields and regenerating the Xcode project, 45 Swift tests, four protocol tests, the public-source scan and an unsigned generic iOS build passed. A single signed Release archive was created with version/build 0.1.8 (10), `ITSAppUsesNonExemptEncryption = false`, and matching app/llama dSYMs. `xcodebuild -exportArchive` reported **Upload succeeded** and **Uploaded package is processing** at 00:36 Moscow time on 2026-11-14. App Store Connect processing, tester availability, Gemma import, quality, memory and speed on iPad 9/10 remain unverified. Before another TestFlight archive, increase both version fields again; do not reuse 0.1.8 (10).
