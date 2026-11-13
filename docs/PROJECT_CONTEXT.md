@@ -2,9 +2,13 @@
 
 Last updated: 2026-11-14. This file is the handoff for future sessions; no hidden conversational memory is required.
 
+## TestFlight 0.1.8 (10): selectable local models uploaded (2026-11-14)
+
+After increasing both version fields and regenerating the Xcode project, 45 Swift tests, four protocol tests, the public-source scan and an unsigned generic iOS build passed. A single signed Release archive was created with version/build 0.1.8 (10), `ITSAppUsesNonExemptEncryption = false`, and matching app/llama dSYMs. `xcodebuild -exportArchive` reported **Upload succeeded** and **Uploaded package is processing** at 00:36 Moscow time on 2026-11-14. App Store Connect processing, tester availability, Gemma import, quality, memory and speed on iPad 9/10 remain unverified. Before another TestFlight archive, increase both version fields again; do not reuse 0.1.8 (10).
+
 ## Selectable local models in development (2026-11-14)
 
-The `fix/direct-address-identifiers` worktree is adding two separately imported, SHA-256 pinned text models: Qwen3-0.6B-Q8_0 and ggml-org Gemma 3 1B Q4_K_M. The app now displays active/installed model status, source links and version, uses model-specific prompts, and moves de-identification errors next to the relevant action. Apple Speech stays the sole on-device audio recognizer. Doctor/patient identity is the required de-identification target; representative names may remain. Brands and standalone street names are preserved; linked full personal addresses are not. Host tests and an unsigned generic iOS build have passed during development, but no new TestFlight archive or iPad validation has been performed. The Gemma file is user imported and subject to its own terms; see `docs/MODEL_RUNTIME_REVIEW.md`.
+The `fix/direct-address-identifiers` worktree adds two separately imported, SHA-256 pinned text models: Qwen3-0.6B-Q8_0 and ggml-org Gemma 3 1B Q4_K_M. The app displays active/installed model status, source links and version, uses model-specific prompts, and moves de-identification errors next to the relevant action. Apple Speech stays the sole on-device audio recognizer. Doctor/patient identity is the required de-identification target; representative names may remain. Brands and standalone street names are preserved; linked full personal addresses are not. The implementation was uploaded in 0.1.8 (10), with iPad validation still outstanding. The Gemma file is user imported and subject to its own terms; see `docs/MODEL_RUNTIME_REVIEW.md`.
 
 ## Unreleased local brand/name lexicons (2026-11-13)
 
