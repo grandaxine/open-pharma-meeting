@@ -2,9 +2,13 @@
 
 Last updated: 2026-11-13. This file is the handoff for future sessions; no hidden conversational memory is required.
 
+## iPad speech restriction and localized UI (2026-11-13)
+
+The user confirmed that TestFlight 0.1.1 (3) recorded and finalized an approximately 8-second, one-chunk meeting on the supervised iPad 10. Speech recognition then returned `kLSRErrorDomain` code 201, which Apple defines as Siri or Dictation disabled. This is a device setting or possible organization policy restriction; the app cannot override it without changing its on-device-only architecture. `SpeechFailure` now classifies codes 201 and 102, and the UI shows actionable guidance while preserving the audio. The app now includes Russian/English localization, defaults the new meeting recognition language to `ru-RU`, makes the offline/MDM notice clearer, and uses a prominent transcription button. Xcode Organizer showed **App upload complete** and **Uploaded to Apple** for signed 0.1.2 (4) on 2026-11-13; App Store Connect processing, tester availability and physical-device speech success remain unverified. The user removed the simulator data personally.
+
 ## TestFlight upload (2026-11-13)
 
-Xcode Organizer created and uploaded Open Pharma Meeting 0.1.1 (3) with the capture startup fix; it shows **Uploaded to Apple** for build 3. `MARKETING_VERSION` and `CURRENT_PROJECT_VERSION` are now 0.1.1 and 3 in the project generator and generated Xcode project. AGENTS.md and CONTRIBUTING.md require both to increase before every new TestFlight archive. App Store Connect processing, tester availability and physical-device retest are not verified. The one used iPad (A16) simulator's erase failed with a macOS permission error; its approximately 1.5 GiB data remains. Xcode's temporary team selection was removed from the generated project after upload. Check remote `main` separately before claiming source publication; an app upload is not a Git push.
+Xcode Organizer created and uploaded Open Pharma Meeting 0.1.1 (3) with the capture startup fix; it showed **Uploaded to Apple** for build 3. The user later installed and tested this build on iPad 10. AGENTS.md and CONTRIBUTING.md require marketing version and build number increases before every new TestFlight archive. The initial `simctl erase` failed with a macOS permission error; the user later deleted the simulator data. Xcode's temporary team selection was removed from the generated project after upload. Check remote `main` separately before claiming source publication; an app upload is not a Git push.
 
 ## iPad capture startup failure (2026-11-13)
 
@@ -24,8 +28,8 @@ The user supplied a detailed specification, approved proceeding after design/pla
 
 - Public repository/owner: https://github.com/grandaxine/open-pharma-meeting (`grandaxine`).
 - Initial commit: `777338b6e2105b58a02a42db575c970d1931b9ef` — `feat: initialize open pharma meeting platform`.
-- Last verified published `main` before the 0.1.1 changes, checked by `git ls-remote` on 2026-11-10: `0c09216bcbff6ac1c3ea02e3229316a715d9a658` — `fix: add iPad app icons for TestFlight`. This was committed directly to `main` and pushed; there was no PR merge. It includes the icon fix, TestFlight status documentation and `/Tmp/` ignore rule. Check the remote for later commits.
-- GitHub Actions run: https://github.com/grandaxine/open-pharma-meeting/actions/runs/42345635063 — **completed / success**, confirmed through GitHub connector after the user pushed.
+- Last verified published `main` before the 0.1.2 changes, checked by `git ls-remote` on 2026-11-13: `8f9d0b45602eb0a9ae5ceb3f52eccc8ae3cfea87` — `fix: prepare audio capture for TestFlight 0.1.1`. Check the remote for later commits.
+- GitHub Actions run for 0.1.1: https://github.com/grandaxine/open-pharma-meeting/actions/runs/43377484557 — **completed / success**, confirmed through GitHub connector after the push.
 - CI covers 12 XCTest cases, native-export JSON Schema validation, 4 Python protocol tests, candidate source scan, generated artifact reproducibility and unsigned generic iOS build. No simulator UI or hardware execution was demonstrated.
 - Local development used Xcode 26.5/Swift 6.3.2. The initial published tree had 66 files; starter archive/prototype/audio files were absent. Check Git status and the remote branch before claiming subsequent documentation edits published.
 

@@ -19,7 +19,7 @@ struct MeetingDocument: FileDocument {
     @State private var repository: LocalMeetingRepository?
     @State private var meetings: [Meeting] = []
     @State private var selection: UUID?
-    @State private var language = "en-US"
+    @State private var language = "ru-RU"
     @State private var notice: String?
     @State private var consent = false
     @State private var busy = false
@@ -36,7 +36,7 @@ struct MeetingDocument: FileDocument {
                 ForEach(meetings) { m in
                     VStack(alignment: .leading) {
                         Text(m.title)
-                        Text(m.recording.state.rawValue.capitalized).font(.caption).foregroundStyle(.secondary)
+                        Text(stateTitle(m.recording.state)).font(.caption).foregroundStyle(.secondary)
                     }.tag(m.id)
                 }
             }
@@ -47,12 +47,21 @@ struct MeetingDocument: FileDocument {
                 VStack(alignment: .leading, spacing: 20) {
                     Text("Open Pharma Meeting").font(.largeTitle.bold())
                     Label("Local only · Private by default", systemImage: "lock.shield")
-                    Picker("Language", selection: $language) {
+                    Picker("Recognition language", selection: $language) {
                         Text("English (US)").tag("en-US")
                         Text("Русский").tag("ru-RU")
                         Text("Deutsch").tag("de-DE")
                     }.disabled(active || busy)
-                    Text("Offline recognition availability depends on the language and installed on-device assets. Unsupported recognition never uses a remote fallback.").font(.footnote)
+                    Label {
+                        Text("Speech recognition runs only on this iPad. Siri or Dictation must be allowed and the language assets installed. If your organization blocks them, contact IT. Audio remains saved if recognition fails.")
+                    } icon: {
+                        Image(systemName: "info.circle.fill")
+                    }
+                    .font(.subheadline)
+                    .foregroundStyle(.primary)
+                    .padding(14)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .background(Color.blue.opacity(0.10), in: RoundedRectangle(cornerRadius: 12))
                     if active {
                         Label(recorder.meeting?.recording.state == .paused ? "Paused" : "Recording", systemImage: "mic.fill").foregroundStyle(.red)
                         Text(Duration.seconds(recorder.elapsed).formatted(.time(pattern: .hourMinuteSecond)))
@@ -69,14 +78,22 @@ struct MeetingDocument: FileDocument {
                         Divider()
                         Text(m.title).font(.title2)
                         Text(m.createdAt, style: .date)
-                        Text("Audio: \(String(format: "%.0f", m.recording.duration)) seconds · \(m.recording.chunks.count) completed chunks")
+                        Text(String(format: NSLocalizedString("Audio: %.0f seconds · %d completed chunks", comment: "Meeting audio summary"), m.recording.duration, m.recording.chunks.count))
                         if m.recording.state == .interrupted {
                             Text("Recording was interrupted. Completed chunks are retained. Recovery may restore readable pending audio; missing samples cannot be reconstructed.")
                             if m.recording.pendingFilename != nil {
                                 Button("Recover pending audio") { perform { guard let repository else { return }; _ = try AudioIntegrity.recover(m, repository: repository); try reload() } }.disabled(busy || active)
                             }
                         }
-                        Button("Transcribe on this iPad") { transcribe(m) }.disabled(active || busy || m.recording.chunks.isEmpty)
+                        Button {
+                            transcribe(m)
+                        } label: {
+                            Label("Transcribe on this iPad", systemImage: "waveform")
+                        }
+                        .buttonStyle(.borderedProminent)
+                        .tint(.indigo)
+                        .controlSize(.large)
+                        .disabled(active || busy || m.recording.chunks.isEmpty)
                         if busy { ProgressView(value: progress); Button("Cancel transcription") { transcription?.cancel() } }
                         if let t = m.transcript {
                             ForEach(t.segments) { s in
@@ -87,7 +104,7 @@ struct MeetingDocument: FileDocument {
                         Button("Export meeting JSON…") { perform { document = MeetingDocument(data: try MeetingCodec.encode(m)); export = true } }.disabled(active || busy)
                         Button("Delete local meeting", role: .destructive) { perform { try repository?.delete(m.id); selection = nil; try reload() } }.disabled(active || busy)
                     }
-                    if let notice { Text(notice).foregroundStyle(.orange).accessibilityLabel("Status: " + notice) }
+                    if let notice { Text(notice).foregroundStyle(.orange).accessibilityLabel(String(localized: "Status: ") + notice) }
                     if let message = recorder.errorMessage { Text(message).foregroundStyle(.orange) }
                 }.padding(28).frame(maxWidth: 850, alignment: .leading)
             }.navigationTitle("Local recorder")
@@ -106,7 +123,7 @@ struct MeetingDocument: FileDocument {
             Button("Cancel", role: .cancel) {}
         } message: { Text("Inform everyone before recording and follow your company's consent and retention procedures. Audio and transcripts stay on this iPad.") }
         .fileExporter(isPresented: $export, document: document, contentType: .json, defaultFilename: "meeting") { result in
-            if case .failure = result { notice = "Export failed." }
+            if case .failure = result { notice = String(localized: "Export failed.") }
         }
         .fileImporter(isPresented: $importing, allowedContentTypes: [.json]) { result in
             perform {
@@ -115,20 +132,39 @@ struct MeetingDocument: FileDocument {
                 guard bytes <= MeetingCodec.maximumBytes else { throw ContractError.invalid("Import too large") }
                 guard let repository else { return }
                 let m = try repository.importMeeting(Data(contentsOf: url)); selection = m.id; try reload()
-                notice = "Metadata imported. Referenced audio files are not part of a JSON import."
+                notice = String(localized: "Metadata imported. Referenced audio files are not part of a JSON import.")
             }
         }
     }
     private func perform(_ action: () throws -> Void) { do { try action() } catch { notice = String(describing: error) } }
+    private func stateTitle(_ state: RecordingState) -> LocalizedStringKey {
+        switch state {
+        case .ready: return "Ready"
+        case .recording: return "Recording"
+        case .paused: return "Paused"
+        case .completed: return "Completed"
+        case .interrupted: return "Interrupted"
+        }
+    }
+    private func transcriptionMessage(for error: Error) -> String {
+        switch SpeechFailure.classify(error) {
+        case .siriOrDictationDisabled:
+            return String(localized: "Siri or Dictation is disabled. Check Settings → General → Keyboard → Enable Dictation and Siri settings. If restricted by your organization, contact IT. Audio remains saved.")
+        case .assetsMissing:
+            return String(localized: "The on-device speech package for this language is missing. Install the language assets in iPad settings or choose another supported language. Audio remains saved.")
+        case nil:
+            return String(describing: error)
+        }
+    }
     private func reload() throws {
         guard let repository else { return }
         let result = try repository.list(); meetings = result.meetings
-        if !result.unreadableFiles.isEmpty { notice = "Some records could not be read. They remain on disk; no data was silently deleted." }
+        if !result.unreadableFiles.isEmpty { notice = String(localized: "Some records could not be read. They remain on disk; no data was silently deleted.") }
     }
     private func start() {
         guard let repository, !busy, !active else { return }
         busy = true
-        var m = Meeting(title: "Meeting " + Date().formatted(date: .abbreviated, time: .shortened), language: language)
+        var m = Meeting(title: String(localized: "Meeting") + " " + Date().formatted(date: .abbreviated, time: .shortened), language: language)
         m.consentAcknowledgedAt = Date(timeIntervalSince1970: floor(Date().timeIntervalSince1970))
         Task { @MainActor in
             defer { busy = false }
@@ -145,8 +181,8 @@ struct MeetingDocument: FileDocument {
                 let t = try await AppleSpeechEngine().transcribe(meeting: m, repository: repository) { value in Task { @MainActor in progress = value } }
                 try Task.checkCancellation()
                 var updated = try repository.load(m.id); updated.transcript = t; try repository.save(updated); try reload()
-            } catch is CancellationError { notice = "Transcription cancelled; prior data retained." }
-            catch { notice = String(describing: error) }
+            } catch is CancellationError { notice = String(localized: "Transcription cancelled; prior data retained.") }
+            catch { notice = transcriptionMessage(for: error) }
         }
     }
 }

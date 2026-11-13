@@ -7,6 +7,7 @@ Development environment: macOS, Xcode 26.5, Swift 6.3.2. Actual current command 
 Run on both iPad 9/A13 and iPad 10/A14 with iPadOS 16+ (include minimum supported OS and currently deployed company OS versions):
 
 - Microphone and Speech permission denied/revoked; consent cancellation; visible recording state.
+- On supervised iPads, check whether Siri or Dictation is disabled by device settings or MDM (`kLSRErrorDomain` 201), whether language assets are missing (102), and whether the app gives actionable guidance without losing audio.
 - Airplane-mode capture and transcription with supported installed locales; unsupported locale fails without outbound traffic.
 - 5-minute, 1-hour and multi-hour recordings; pause/resume; measured rotation gaps; recorded-media timestamp alignment and word accuracy at boundaries.
 - Background/lock, competing audio session/interruption, route changes, app termination, relaunch recovery and unreadable final CAF. Never automatically restart microphone capture.

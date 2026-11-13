@@ -1,0 +1,2 @@
+"NSMicrophoneUsageDescription" = "Record a meeting locally after you confirm participant consent.";
+"NSSpeechRecognitionUsageDescription" = "Transcribe meeting audio on this device. Remote recognition is never requested.";

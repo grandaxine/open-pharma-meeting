@@ -1,8 +1,12 @@
 # Implementation status — 2026-11-13
 
+## iPad speech restriction and release 0.1.2 (4)
+
+The user confirmed that TestFlight 0.1.1 (3) recorded and finalized an approximately 8-second, one-chunk meeting on iPad 10. Transcription returned `kLSRErrorDomain` code 201: Apple Speech reports Siri or Dictation disabled. The app cannot change device or MDM restrictions. The new `SpeechFailure` classifier and localized UI give actionable guidance for code 201 and missing assets (102), default recognition to Russian, and make the offline notice and transcription button more visible. Russian and English localization resources are packaged in signed 0.1.2 (4); Xcode Organizer showed **App upload complete** and **Uploaded to Apple** on 2026-11-13. App Store Connect processing, tester availability and speech success on the managed iPad remain unverified. The user removed the simulator data.
+
 ## TestFlight build 0.1.1 (3)
 
-Xcode Organizer showed **Uploaded to Apple** on 2026-11-13 for a signed 0.1.1 (3) archive containing the capture startup fix. App Store Connect processing, tester availability and physical-device retest are pending. Both the marketing version and build number were increased in the project generator and generated Xcode project; AGENTS.md and CONTRIBUTING.md now require this for every new TestFlight archive. Erasing the used iPad simulator failed because macOS denied access to its data; no simulator data was removed.
+Xcode Organizer showed **Uploaded to Apple** on 2026-11-13 for a signed 0.1.1 (3) archive containing the capture startup fix. The user later installed and tested it on iPad 10; capture worked, speech did not because Siri or Dictation is disabled. Both the marketing version and build number were increased in the project generator and generated Xcode project; AGENTS.md and CONTRIBUTING.md now require this for every new TestFlight archive.
 
 ## iPad recording startup fix
 
@@ -18,11 +22,11 @@ Current state supersedes pre-publication observations in the historical design/p
 
 Repository: https://github.com/grandaxine/open-pharma-meeting — public, owner `grandaxine`, branch `main`.
 
-Last verified published `main` before the 0.1.1 changes: `0c09216bcbff6ac1c3ea02e3229316a715d9a658` (`fix: add iPad app icons for TestFlight`), checked with `git ls-remote` on 2026-11-10. Check the remote for later commits.
+Last verified published `main` before the 0.1.2 changes: `8f9d0b45602eb0a9ae5ceb3f52eccc8ae3cfea87` (`fix: prepare audio capture for TestFlight 0.1.1`), checked with `git ls-remote` on 2026-11-13. Check the remote for later commits.
 
 Initial commit: `777338b6e2105b58a02a42db575c970d1931b9ef` — `feat: initialize open pharma meeting platform`.
 
-CI: https://github.com/grandaxine/open-pharma-meeting/actions/runs/42345635063 — **completed / success**, confirmed through GitHub connector after the user's push. Swift tests, native-export schema validation, protocol checks, source scan, reproducibility check and unsigned iPad build all passed.
+CI for 0.1.1: https://github.com/grandaxine/open-pharma-meeting/actions/runs/43377484557 — **completed / success**, confirmed through GitHub connector after the push. Swift tests, native-export schema validation, protocol checks, source scan, reproducibility check and unsigned iPad build all passed.
 
 ## Milestone progress
 

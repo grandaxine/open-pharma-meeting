@@ -12,6 +12,14 @@ products={}; files=[]
 assets_ref=obj('App/Assets.xcassets', 'isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = "App/Assets.xcassets"; sourceTree = SOURCE_ROOT;')
 files.append(assets_ref)
 assets_build=obj('App/Assets.xcassets build', f'isa = PBXBuildFile; fileRef = {assets_ref};')
+localized_builds=[]
+for name in ['Localizable.strings','InfoPlist.strings']:
+    localized_refs=[]
+    for language in ['en','ru']:
+        localized_refs.append(obj(f'App/{language}.lproj/{name}', f'isa = PBXFileReference; lastKnownFileType = text.plist.strings; path = "App/{language}.lproj/{name}"; sourceTree = SOURCE_ROOT;'))
+    variant=obj('App/'+name, f'isa = PBXVariantGroup; children = ({",".join(localized_refs)},); name = {name}; sourceTree = "<group>";')
+    files.append(variant)
+    localized_builds.append(obj('App/'+name+' build', f'isa = PBXBuildFile; fileRef = {variant};'))
 for name in allnames:
     app=name=='OpenPharmaMeeting'
     products[name]=obj(name+'product', f'isa = PBXFileReference; explicitFileType = {"wrapper.application" if app else "archive.ar"}; path = {name+".app" if app else "lib"+name+".a"}; sourceTree = BUILT_PRODUCTS_DIR;')
@@ -30,14 +38,14 @@ for name in allnames:
         links.append(obj(name+dep+'link',f'isa = PBXBuildFile; fileRef = {products[dep]};'))
     sources=obj(name+'sources',f'isa = PBXSourcesBuildPhase; buildActionMask = 2147483647; files = ({",".join(builds)},); runOnlyForDeploymentPostprocessing = 0;')
     frameworks=obj(name+'frameworks',f'isa = PBXFrameworksBuildPhase; buildActionMask = 2147483647; files = ({(",".join(links)+",") if links else ""}); runOnlyForDeploymentPostprocessing = 0;')
-    resources=obj(name+'resources',f'isa = PBXResourcesBuildPhase; buildActionMask = 2147483647; files = ({assets_build},); runOnlyForDeploymentPostprocessing = 0;') if app else None
+    resources=obj(name+'resources',f'isa = PBXResourcesBuildPhase; buildActionMask = 2147483647; files = ({",".join([assets_build]+localized_builds)},); runOnlyForDeploymentPostprocessing = 0;') if app else None
     configs=[]
     for c in ['Debug','Release']:
         extra='GENERATE_INFOPLIST_FILE = NO; INFOPLIST_FILE = App/Info.plist; TARGETED_DEVICE_FAMILY = 2; ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;' if app else 'DEFINES_MODULE = YES; SKIP_INSTALL = YES;'
         configs.append(obj(name+c,f'''isa = XCBuildConfiguration; name = {c}; buildSettings = {{
         SDKROOT = iphoneos; IPHONEOS_DEPLOYMENT_TARGET = 16.0; SWIFT_VERSION = 5.0;
         PRODUCT_NAME = "$(TARGET_NAME)"; PRODUCT_BUNDLE_IDENTIFIER = org.openpharmameeting.{name};
-        ALWAYS_SEARCH_USER_PATHS = NO; CODE_SIGN_STYLE = Automatic; CURRENT_PROJECT_VERSION = 3; MARKETING_VERSION = 0.1.1;
+        ALWAYS_SEARCH_USER_PATHS = NO; CODE_SIGN_STYLE = Automatic; CURRENT_PROJECT_VERSION = 4; MARKETING_VERSION = 0.1.2;
         SWIFT_OPTIMIZATION_LEVEL = "{'-Onone' if c=='Debug' else '-O'}"; {extra}
         SUPPORTS_MACCATALYST = NO; ENABLE_USER_SCRIPT_SANDBOXING = YES;
         }};'''))
@@ -48,7 +56,7 @@ group=obj('group',f'isa = PBXGroup; children = ({",".join(files)},{productsGroup
 pconfigs=[]
 for c in ['Debug','Release']: pconfigs.append(obj('project'+c,f'isa = XCBuildConfiguration; name = {c}; buildSettings = {{}};'))
 pconf=obj('projectconfigs',f'isa = XCConfigurationList; buildConfigurations = ({",".join(pconfigs)},); defaultConfigurationIsVisible = 0; defaultConfigurationName = Release;')
-project=obj('project',f'''isa = PBXProject; attributes = {{ LastUpgradeCheck = 1600; }}; buildConfigurationList = {pconf}; compatibilityVersion = "Xcode 14.0"; developmentRegion = en; knownRegions = (en,Base); mainGroup = {group}; productRefGroup = {productsGroup}; projectDirPath = ""; projectRoot = ""; targets = ({",".join(uid(n+"target") for n in allnames)},);''')
+project=obj('project',f'''isa = PBXProject; attributes = {{ LastUpgradeCheck = 1600; }}; buildConfigurationList = {pconf}; compatibilityVersion = "Xcode 14.0"; developmentRegion = en; knownRegions = (en,ru,Base); mainGroup = {group}; productRefGroup = {productsGroup}; projectDirPath = ""; projectRoot = ""; targets = ({",".join(uid(n+"target") for n in allnames)},);''')
 (out/'project.pbxproj').write_text('// !$*UTF8*$!\n{ archiveVersion = 1; classes = {}; objectVersion = 56; objects = {\n'+'\n'.join(objects)+f'\n}}; rootObject = {project}; }}\n')
 scheme=out/'xcshareddata/xcschemes'; scheme.mkdir(parents=True,exist_ok=True)
 ref=f'<BuildableReference BuildableIdentifier="primary" BlueprintIdentifier="{uid("OpenPharmaMeetingtarget")}" BuildableName="OpenPharmaMeeting.app" BlueprintName="OpenPharmaMeeting" ReferencedContainer="container:OpenPharmaMeeting.xcodeproj"/>'

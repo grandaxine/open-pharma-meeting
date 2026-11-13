@@ -1,0 +1,2 @@
+"NSMicrophoneUsageDescription" = "Записывать встречу на этом iPad после подтверждения согласия участников.";
+"NSSpeechRecognitionUsageDescription" = "Распознавать аудиозапись только на этом iPad. Удалённое распознавание не используется.";
