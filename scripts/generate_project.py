@@ -51,7 +51,7 @@ for name in allnames:
         configs.append(obj(name+c,f'''isa = XCBuildConfiguration; name = {c}; buildSettings = {{
         SDKROOT = iphoneos; IPHONEOS_DEPLOYMENT_TARGET = 16.0; SWIFT_VERSION = 5.0;
         PRODUCT_NAME = "$(TARGET_NAME)"; PRODUCT_BUNDLE_IDENTIFIER = org.openpharmameeting.{name};
-        ALWAYS_SEARCH_USER_PATHS = NO; CODE_SIGN_STYLE = Automatic; CURRENT_PROJECT_VERSION = 10; MARKETING_VERSION = 0.1.8;
+        ALWAYS_SEARCH_USER_PATHS = NO; CODE_SIGN_STYLE = Automatic; CURRENT_PROJECT_VERSION = 11; MARKETING_VERSION = 0.1.9;
         SWIFT_OPTIMIZATION_LEVEL = "{'-Onone' if c=='Debug' else '-O'}"; {extra}
         SUPPORTS_MACCATALYST = NO; ENABLE_USER_SCRIPT_SANDBOXING = YES;
         }};'''))

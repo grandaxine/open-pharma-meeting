@@ -1,0 +1,77 @@
+{
+  "schemaVersion": "1",
+  "cases": [
+    {
+      "id": "doctor_and_representative",
+      "text": "Здравствуйте, Евгений Павлович. Меня зовут Сергей, я медицинский представитель. Обсудим Кискали.",
+      "mask": [{"quote": "Евгений Павлович", "occurrence": 0}, {"quote": "Сергей", "occurrence": 0}],
+      "preserve": [{"quote": "Кискали", "occurrence": 0}]
+    },
+    {
+      "id": "colloquial_repeated_name",
+      "text": "Мариванна, добрый день. Мариванна, что вы думаете о препарате Энтресто?",
+      "mask": [{"quote": "Мариванна", "occurrence": 0}, {"quote": "Мариванна", "occurrence": 1}],
+      "preserve": [{"quote": "Энтресто", "occurrence": 0}]
+    },
+    {
+      "id": "patient_full_name",
+      "text": "Пациентка Анна Сидорова принимает Леквио. Её зовут Анна.",
+      "mask": [{"quote": "Анна Сидорова", "occurrence": 0}, {"quote": "Анна", "occurrence": 1}],
+      "preserve": [{"quote": "Леквио", "occurrence": 0}]
+    },
+    {
+      "id": "person_and_identical_drug",
+      "text": "Доктор Петров обсудил препарат Петров и сравнил его с Кискали.",
+      "mask": [{"quote": "Петров", "occurrence": 0}],
+      "preserve": [{"quote": "Петров", "occurrence": 1}, {"quote": "Кискали", "occurrence": 0}]
+    },
+    {
+      "id": "person_and_identical_street",
+      "text": "Доктор Пушкина работает на улице Пушкина. Представитель Олег приехал к ней.",
+      "mask": [{"quote": "Пушкина", "occurrence": 0}, {"quote": "Олег", "occurrence": 0}],
+      "preserve": [{"quote": "Пушкина", "occurrence": 1}]
+    },
+    {
+      "id": "company_and_brand",
+      "text": "Я Павел из Novartis. Врач Ирина сравнила Entresto и Липримар.",
+      "mask": [{"quote": "Павел", "occurrence": 0}, {"quote": "Ирина", "occurrence": 0}],
+      "preserve": [{"quote": "Novartis", "occurrence": 0}, {"quote": "Entresto", "occurrence": 0}, {"quote": "Липримар", "occurrence": 0}]
+    },
+    {
+      "id": "unlisted_russian_name",
+      "text": "Здравствуйте, доктор Изольда Захарова. Я расскажу о препарате Джакови.",
+      "mask": [{"quote": "Изольда Захарова", "occurrence": 0}],
+      "preserve": [{"quote": "Джакови", "occurrence": 0}]
+    },
+    {
+      "id": "english_name",
+      "text": "Doctor John Smith asked about Cosentyx and Ilaris.",
+      "mask": [{"quote": "John Smith", "occurrence": 0}],
+      "preserve": [{"quote": "Cosentyx", "occurrence": 0}, {"quote": "Ilaris", "occurrence": 0}]
+    },
+    {
+      "id": "patronymic_and_competitor",
+      "text": "Василий Олегыч, почему вы выбираете Оторва вместо Леквио? Меня зовут Дмитрий.",
+      "mask": [{"quote": "Василий Олегыч", "occurrence": 0}, {"quote": "Дмитрий", "occurrence": 0}],
+      "preserve": [{"quote": "Оторва", "occurrence": 0}, {"quote": "Леквио", "occurrence": 0}]
+    },
+    {
+      "id": "no_person_name",
+      "text": "Обсудили показания препарата Кискали, доказательную базу и мнение врача.",
+      "mask": [],
+      "preserve": [{"quote": "Кискали", "occurrence": 0}]
+    },
+    {
+      "id": "institution_not_person",
+      "text": "В центре имени Бакулева обсудили препарат Энтресто на улице Ленина.",
+      "mask": [],
+      "preserve": [{"quote": "Бакулева", "occurrence": 0}, {"quote": "Энтресто", "occurrence": 0}, {"quote": "Ленина", "occurrence": 0}]
+    },
+    {
+      "id": "mixed_names_and_medical_terms",
+      "text": "Врач Ольга Иванова и представитель Алексей обсудили ингибиторы PCSK9 и препарат Леквио.",
+      "mask": [{"quote": "Ольга Иванова", "occurrence": 0}, {"quote": "Алексей", "occurrence": 0}],
+      "preserve": [{"quote": "PCSK9", "occurrence": 0}, {"quote": "Леквио", "occurrence": 0}]
+    }
+  ]
+}

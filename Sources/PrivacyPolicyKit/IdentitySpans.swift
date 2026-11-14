@@ -56,10 +56,20 @@ enum IdentitySpans {
                 throw DeidentificationError.invalidSpan
             }
             if let last = merged.last, span.startUTF16 < last.endUTF16 {
-                guard span.kind == last.kind else { throw DeidentificationError.conflictingSpans }
-                merged[merged.count - 1] = IdentifyingSpan(
-                    startUTF16: last.startUTF16,
-                    endUTF16: max(last.endUTF16, span.endUTF16), kind: last.kind)
+                if span.kind == last.kind {
+                    merged[merged.count - 1] = IdentifyingSpan(
+                        startUTF16: last.startUTF16,
+                        endUTF16: max(last.endUTF16, span.endUTF16), kind: last.kind)
+                } else if let specific = [last, span].first(where: { [.doctor, .patient].contains($0.kind) }),
+                          let generic = [last, span].first(where: { $0.kind == .person }),
+                          generic.startUTF16 >= specific.startUTF16,
+                          generic.endUTF16 <= specific.endUTF16 {
+                    // A generic model name may duplicate a role-specific rule.
+                    // Keep the narrower verified rule; never extend it into a brand.
+                    merged[merged.count - 1] = specific
+                } else {
+                    throw DeidentificationError.conflictingSpans
+                }
             } else {
                 merged.append(span)
             }

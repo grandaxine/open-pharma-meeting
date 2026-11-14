@@ -12,6 +12,7 @@ public enum IdentityRules {
         (#"(?i:пациент[а-яё]*|patient)\s+([А-ЯЁ][а-яё]+(?:\s+[А-ЯЁ][а-яё]+)?)"#, .patient, 1)
     ]
     private static let greeting = #"(?i:здравствуйте|добрый\s+день)\s*,?\s+([А-ЯЁ][а-яё]{2,})(?:\s+([А-ЯЁ][а-яё]{2,}(?:ович|евич|овна|евна|ична|ыч|ич)))?"#
+    private static let selfIntroduction = #"(?i:меня\s+зовут|мо[её]\s+имя|my\s+name\s+is)\s+([А-ЯЁ][а-яё]{2,}|[A-Z][a-z]{2,})(?:\s+([А-ЯЁ][а-яё]{2,}(?:ович|евич|овна|евна|ична|ыч|ич)))?"#
 
     public static func detect(in text: String) throws -> [IdentifyingSpan] {
         let full = NSRange(location: 0, length: (text as NSString).length)
@@ -24,24 +25,26 @@ public enum IdentityRules {
             }
         }
         let source = text as NSString
-        let regex = try NSRegularExpression(pattern: greeting)
-        for match in regex.matches(in: text, range: full) {
-            var name = source.substring(with: match.range(at: 1))
-            if match.range(at: 2).location != NSNotFound {
-                name += " " + source.substring(with: match.range(at: 2))
-            }
-            for variant in NameLexicon.addressVariants(for: name) {
-                var search = full
-                while search.length > 0 {
-                    let found = source.range(of: variant, options: [.caseInsensitive], range: search)
-                    guard found.location != NSNotFound else { break }
-                    if isWholeWord(found, in: source) && !isBrandContext(found.location, in: source) &&
-                        !isStreetContext(found.location, in: source) {
-                        spans.append(IdentifyingSpan(startUTF16: found.location,
-                                                     endUTF16: NSMaxRange(found), kind: .doctor))
+        for (pattern, kind) in [(greeting, IdentityKind.doctor), (selfIntroduction, .person)] {
+            let regex = try NSRegularExpression(pattern: pattern)
+            for match in regex.matches(in: text, range: full) {
+                var name = source.substring(with: match.range(at: 1))
+                if match.range(at: 2).location != NSNotFound {
+                    name += " " + source.substring(with: match.range(at: 2))
+                }
+                for variant in NameLexicon.addressVariants(for: name) {
+                    var search = full
+                    while search.length > 0 {
+                        let found = source.range(of: variant, options: [.caseInsensitive], range: search)
+                        guard found.location != NSNotFound else { break }
+                        if isWholeWord(found, in: source) && !isBrandContext(found.location, in: source) &&
+                            !isStreetContext(found.location, in: source) {
+                            spans.append(IdentifyingSpan(startUTF16: found.location,
+                                                         endUTF16: NSMaxRange(found), kind: kind))
+                        }
+                        let next = NSMaxRange(found)
+                        search = NSRange(location: next, length: source.length - next)
                     }
-                    let next = NSMaxRange(found)
-                    search = NSRange(location: next, length: source.length - next)
                 }
             }
         }

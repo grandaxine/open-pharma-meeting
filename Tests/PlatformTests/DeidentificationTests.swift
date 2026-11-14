@@ -50,6 +50,36 @@ final class DeidentificationTests: XCTestCase {
         XCTAssertTrue(gemma.contains("Кискали"))
         XCTAssertTrue(gemma.contains("улице Пушкина"))
         XCTAssertTrue(gemma.contains("представителя"))
+        XCTAssertTrue(qwen.contains("имена всех людей"))
+        XCTAssertTrue(gemma.contains("имена всех людей"))
+        XCTAssertFalse(qwen.contains("Имя медицинского представителя можно оставить"))
+        XCTAssertTrue(qwen.contains("\"kind\":\"person\""))
+    }
+
+    func testGreetingAndSelfIntroductionMaskAllPeopleButKeepBrand() async throws {
+        let source = transcript("Здравствуйте Евгений Петрович. Меня зовут Сергей, я представитель Novartis. Сергей обсудил Кискали.")
+        let draft = try await DeidentificationService.makeDraft(
+            transcript: source, detector: PhraseDetector(phrase: "нет такого имени", kind: .person))
+        XCTAssertEqual(draft.redactedText,
+                       "Здравствуйте [DOCTOR_1]. Меня зовут [PERSON_1], я представитель Novartis. [PERSON_1] обсудил Кискали.")
+    }
+
+    func testGenericPersonAndDoctorRuleMergeWithoutLosingBrand() async throws {
+        let source = transcript("Доктор Петров обсудил Кискали.")
+        let draft = try await DeidentificationService.makeDraft(
+            transcript: source, detector: PhraseDetector(phrase: "Петров", kind: .person))
+        XCTAssertEqual(draft.redactedText, "Доктор [DOCTOR_1] обсудил Кискали.")
+    }
+
+    func testGenericPersonSpanCannotExtendDoctorRuleIntoBrand() async {
+        let source = transcript("Доктор Петров обсудил Кискали.")
+        do {
+            _ = try await DeidentificationService.makeDraft(
+                transcript: source,
+                detector: PhraseDetector(phrase: "Петров обсудил Кискали", kind: .person))
+            XCTFail("Overbroad generic span must not swallow a brand")
+        } catch DeidentificationError.conflictingSpans { }
+        catch { XCTFail("Unexpected error: \(error)") }
     }
 
     func testDirectIdentifiersAreMasked() async throws {
@@ -228,12 +258,12 @@ final class DeidentificationTests: XCTestCase {
         } catch DeidentificationError.residualIdentifier { }
     }
 
-    func testDoctorGivenNameLaterIsMaskedButRepresentativeAndStreetRemain() async throws {
+    func testDoctorAndRepresentativeNamesAreMaskedButBrandAndStreetRemain() async throws {
         let source = transcript("Здравствуйте Евгений Петрович. Меня зовут Сергей, я представитель. Евгений, обсудим Кискали на улице Пушкина.")
         let draft = try await DeidentificationService.makeDraft(
             transcript: source, detector: PhraseDetector(phrase: "несуществующее имя", kind: .doctor))
         XCTAssertFalse(draft.redactedText.contains("Евгений"))
-        XCTAssertTrue(draft.redactedText.contains("Сергей"))
+        XCTAssertFalse(draft.redactedText.contains("Сергей"))
         XCTAssertTrue(draft.redactedText.contains("Кискали на улице Пушкина"))
     }
 

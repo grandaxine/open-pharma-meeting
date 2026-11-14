@@ -2,11 +2,27 @@
 
 ## Source publication
 
-The selectable-model changes, brand/name lexicons and TestFlight 0.1.8 (10) release source were fast-forward merged and pushed to public `main`. The verified remote `main` head immediately after that push was `43163d6d68c3177726ef5953e9c93b89e2c84928`. This confirms source publication, not completion of App Store Connect processing or iPad validation.
+The selectable-model changes, brand/name lexicons and TestFlight 0.1.8 (10) release source were fast-forward merged and pushed to public `main`. The verified remote `main` head immediately after that push was `43163d6d68c3177726ef5953e9c93b89e2c84928`. The user confirmed TestFlight processing completed and installed the app on iPad 10; broader device validation remains pending.
+
+The 0.1.9 (11) release changes and evaluation documents are local until a commit and push are verified; the TestFlight upload itself succeeded as recorded below.
+
+## TestFlight 0.1.9 (11): upload succeeded
+
+The local model prompt covers all people's names, including the representative, while protecting brands, drugs, competitors, companies, institutions, medical terms and standalone street names. A deterministic self-introduction rule masks names after “меня зовут” and repeated mentions. Generic `person` model spans merge with contained doctor/patient rule spans; overbroad spans still fail closed. Both project version fields were increased to 0.1.9 (11) before the single signed archive. Verification passed: 48 Swift tests, four protocol tests, public-source scan (0 findings), plist lint and unsigned generic iOS build. The archive has version/build 0.1.9 (11), `ITSAppUsesNonExemptEncryption = false` and a matching llama dSYM. `xcodebuild -exportArchive` reported **Upload succeeded** at 11:15 Moscow time on 2026-11-14; Apple reported package processing. Installation and recall/false-positive testing on iPad 9/10 remain pending. This build is a field trial, not validated de-identification.
+
+## Updated scope and offline Gemma evaluation
+
+The user now requires removal of all people's names regardless of role, while retaining brands, drugs, companies, medical terms, institution names and standalone street names. Version 0.1.8 targeted only doctor/patient identity as its minimum; 0.1.9 adds all-person prompt and deterministic self-introduction handling. A reproducible local benchmark was added with 12 synthetic cases, 17 required person occurrences and 20 protected terms. A candidate-constrained Gemma mode masked 16/17 names but kept only 15/20 protected terms; a binary question about each known occurrence selected all 20 protected terms as people. These fail the release gate. Details: `docs/GEMMA_EVALUATION.md`. Qwen passes the response parser on the user's iPad sample, but its name recall under the updated scope is unvalidated and user-reported as poor.
+
+The user reports Qwen misses approximately half of person names in iPad trials; this has not yet been measured from labeled data. Passing the parser is not evidence of adequate name recall. The immediate decision is field evaluation with local, privacy-safe tallies for missed names and overmasked non-person names on iPad 9/10, following `docs/VALIDATION.md`. No model output should be sent for cloud analysis while known misses remain.
+
+## TestFlight 0.1.8 iPad result
+
+The user confirmed TestFlight processing completed and installed 0.1.8 (10) on iPad 10. The app verified and activated imported Gemma 3 1B Q4_K_M. On an 82-second synthetic meeting, Gemma de-identification failed before review; Qwen passes on the same transcript. The GGUF and only this meeting's JSON metadata were copied read-only from the connected iPad into private temporary files. The GGUF SHA-256 matches the pinned model. A Mac build from the same llama.cpp revision with the app's prompt, grammar, and greedy sampling reproduced invalid Gemma output: entire dialogue passages were labeled doctor/patient identities, exceeding the parser's four-word limit. Smaller windows returned absent quotes or empty results. A concise candidate-name prompt with JSON prefill yielded exact names but mislabeled the representative as a patient; it is not enough to validate safe export. No code or TestFlight build changed. Keep Qwen active for testing; redesign and evaluate Gemma extraction without weakening fail-closed checks.
 
 ## TestFlight 0.1.8 (10): upload succeeded
 
-The model-switch branch received a version/build bump to 0.1.8 (10), and the Xcode project was regenerated. Verification passed: 45 Swift tests, four protocol tests, public-source scan (0 findings), unsigned generic iOS build and a signed Release archive. The archive contains the correct version/build and `ITSAppUsesNonExemptEncryption = false`; a llama dSYM with matching UUID was included. Xcode's App Store Connect upload reported **Upload succeeded** and **Uploaded package is processing** at 00:36 Moscow time on 2026-11-14. Processing and TestFlight tester availability are pending. No physical Gemma or multi-iPad validation has occurred. The next TestFlight archive must use a new marketing version and build number.
+The model-switch branch received a version/build bump to 0.1.8 (10), and the Xcode project was regenerated. Verification passed: 45 Swift tests, four protocol tests, public-source scan (0 findings), unsigned generic iOS build and a signed Release archive. The archive contains the correct version/build and `ITSAppUsesNonExemptEncryption = false`; a llama dSYM with matching UUID was included. Xcode's App Store Connect upload reported **Upload succeeded** at 00:36 Moscow time on 2026-11-14. The user confirmed processing and iPad 10 installation. Gemma import works on that device, but de-identification failed as described above; multi-iPad validation remains pending. The next TestFlight archive must use a new marketing version and build number.
 
 ## Selectable local text models: implementation underway
 
