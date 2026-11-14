@@ -4,7 +4,7 @@
 
 The selectable-model changes, brand/name lexicons and TestFlight 0.1.8 (10) release source were fast-forward merged and pushed to public `main`. The verified remote `main` head immediately after that push was `43163d6d68c3177726ef5953e9c93b89e2c84928`. The user confirmed TestFlight processing completed and installed the app on iPad 10; broader device validation remains pending.
 
-The 0.1.9 (11) release changes and evaluation documents are local until a commit and push are verified; the TestFlight upload itself succeeded as recorded below.
+The 0.1.9 (11) release changes and evaluation documents were committed and pushed to `main` as `7f6b84eba0c7f4a2e7e01888aad5750b34a7540d`; the TestFlight upload itself succeeded as recorded below.
 
 ## TestFlight 0.1.9 (11): upload succeeded
 
